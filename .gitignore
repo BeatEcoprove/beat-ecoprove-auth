@@ -11,6 +11,7 @@
 # Environment Variables
 .env
 
+.vscode
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
