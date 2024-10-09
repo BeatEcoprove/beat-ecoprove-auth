@@ -34,8 +34,8 @@ func (hs *HttpServer) AddControllers(controllers []shared.Controller) {
 	}
 }
 
-func (hs *HttpServer) Serve(port string) {
-	log.Fatal(hs.Instance.Listen(fmt.Sprintf(":%s", port)))
+func (hs *HttpServer) Serve(port uint16) {
+	log.Fatal(hs.Instance.Listen(fmt.Sprintf(":%d", port)))
 }
 
 func errorHandler(ctx *fiber.Ctx, err error) error {

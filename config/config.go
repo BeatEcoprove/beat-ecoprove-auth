@@ -10,6 +10,8 @@ type Config struct {
 	POSTGRES_DB       string
 	POSTGRES_HOST     string
 	POSTGRES_PORT     string
+
+	BEAT_IDENTITY_SERVER uint16
 }
 
 func LoadEnv(path string) {
@@ -29,6 +31,8 @@ func LoadEnv(path string) {
 		POSTGRES_DB:       viper.GetString("POSTGRES_DB"),
 		POSTGRES_HOST:     viper.GetString("POSTGRES_HOST"),
 		POSTGRES_PORT:     viper.GetString("POSTGRES_PORT"),
+
+		BEAT_IDENTITY_SERVER: viper.GetUint16("BEAT_IDENTITY_SERVER"),
 	}
 }
 

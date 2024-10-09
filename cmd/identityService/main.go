@@ -11,11 +11,11 @@ import (
 
 const (
 	API_VERSION = "2"
-	API_PORT    = "3000"
 )
 
 func main() {
 	config.LoadEnv(".env")
+	env := config.GetCofig()
 
 	// adapters
 	db := adapters.GetDatabase()
@@ -35,5 +35,5 @@ func main() {
 		authController,
 	})
 
-	app.Serve(API_PORT)
+	app.Serve(env.BEAT_IDENTITY_SERVER)
 }
