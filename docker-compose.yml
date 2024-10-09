@@ -1,6 +1,8 @@
 services:
   identity-db:
-    image: postgis/postgis:16-3.4
+    build:
+      context: .
+      dockerfile: docker/postgresql/Dockerfile
     ports:
       - ${POSTGRES_PORT}:5432
     env_file:

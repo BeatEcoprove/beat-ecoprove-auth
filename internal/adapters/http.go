@@ -25,7 +25,7 @@ func NewHttpServer(version string, middewares ...fiber.Handler) *HttpServer {
 }
 
 func (hs *HttpServer) GetVersion() fiber.Router {
-	return hs.Instance.Group(fmt.Sprintf("api/%s", hs.version))
+	return hs.Instance.Group(fmt.Sprintf("api/v%s", hs.version))
 }
 
 func (hs *HttpServer) AddControllers(controllers []shared.Controller) {
@@ -35,7 +35,6 @@ func (hs *HttpServer) AddControllers(controllers []shared.Controller) {
 }
 
 func (hs *HttpServer) Serve(port string) {
-	// port = config.GetCofig().FIRE_WATCH_API_PORT
 	log.Fatal(hs.Instance.Listen(fmt.Sprintf(":%s", port)))
 }
 
