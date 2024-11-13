@@ -1,7 +1,6 @@
 package adapters
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/BeatEcoprove/identityService/config"
@@ -17,11 +16,6 @@ type GormDatabase struct {
 	conn *gorm.DB
 }
 
-func (gdc *GormDatabase) Close() error {
-
-	return errors.New("")
-}
-
 func (gdc *GormDatabase) GetConnectionString() string {
 	return getConnectionString()
 }
@@ -30,9 +24,9 @@ func (gdc *GormDatabase) GetOrm() interfaces.Orm {
 	return gdc.conn
 }
 
-func newDatabaseGorm() (*GormDatabase, error) {
+func newDatabaseGorm(connectionString string) (*GormDatabase, error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN: getConnectionString(),
+		DSN: connectionString,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -50,7 +44,7 @@ func getConnectionString() string {
 	env := config.GetCofig()
 
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		env.POSTGRES_USER,
 		env.POSTGRES_PASSWORD,
 		env.POSTGRES_HOST,
@@ -59,11 +53,11 @@ func getConnectionString() string {
 	)
 }
 
-func GetDatabase() interfaces.Database {
+func GetDatabaseWithConnectionString(connectionString string) interfaces.Database {
 	var err error
 
 	if gormDatabase == nil {
-		gormDatabase, err = newDatabaseGorm()
+		gormDatabase, err = newDatabaseGorm(connectionString)
 
 		if err != nil {
 			panic(err)
@@ -71,4 +65,14 @@ func GetDatabase() interfaces.Database {
 	}
 
 	return gormDatabase
+}
+
+func GetDatabase() interfaces.Database {
+	connectionString := getConnectionString()
+
+	if err := config.Migrate(connectionString, false); err != nil {
+		panic(err)
+	}
+
+	return GetDatabaseWithConnectionString(connectionString)
 }

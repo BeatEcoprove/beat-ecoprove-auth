@@ -7,6 +7,9 @@
 
 # vscode
 .vscode
+www
+
+todo.md
 
 # Environment Variables
 .env
@@ -122,4 +125,3 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/goland
-

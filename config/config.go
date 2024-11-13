@@ -12,6 +12,12 @@ type Config struct {
 	POSTGRES_PORT     string
 
 	BEAT_IDENTITY_SERVER uint16
+
+	JWT_AUDIENCE        string
+	JWT_ISSUER          string
+	JWT_ACCESS_EXPIRED  int
+	JWT_REFRESH_EXPIRED int
+	JWT_SECRET          string
 }
 
 func LoadEnv(path string) {
@@ -33,6 +39,12 @@ func LoadEnv(path string) {
 		POSTGRES_PORT:     viper.GetString("POSTGRES_PORT"),
 
 		BEAT_IDENTITY_SERVER: viper.GetUint16("BEAT_IDENTITY_SERVER"),
+
+		JWT_AUDIENCE:        viper.GetString("JWT_AUDIENCE"),
+		JWT_ISSUER:          viper.GetString("JWT_ISSUER"),
+		JWT_ACCESS_EXPIRED:  viper.GetInt("JWT_ACCESS_EXPIRED"),
+		JWT_REFRESH_EXPIRED: viper.GetInt("JWT_REFRESH_EXPIRED"),
+		JWT_SECRET:          viper.GetString("JWT_SECRET"),
 	}
 }
 

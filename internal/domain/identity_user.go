@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"errors"
+
 	interfaces "github.com/BeatEcoprove/identityService/pkg/domain"
 	"github.com/BeatEcoprove/identityService/pkg/services"
 	"gorm.io/gorm"
@@ -13,6 +15,8 @@ const (
 	Organization
 	Admin
 )
+
+var ErrUndefinedRole = errors.New("role not defined")
 
 type IdentityUser struct {
 	interfaces.EntityBase
@@ -54,4 +58,17 @@ func (u *IdentityUser) BeforeCreate(tx *gorm.DB) error {
 	u.Password = password
 	u.DeletedAt = nil
 	return nil
+}
+
+func GetRole(role Role) (string, error) {
+	switch role {
+	case Client:
+		return "client", nil
+	case Admin:
+		return "admin", nil
+	case Organization:
+		return "organization", nil
+	}
+
+	return "", ErrUndefinedRole
 }

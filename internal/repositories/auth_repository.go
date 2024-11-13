@@ -5,9 +5,16 @@ import (
 	interfaces "github.com/BeatEcoprove/identityService/pkg/adapters"
 )
 
-type AuthRepository struct {
-	interfaces.RepositoryBase
-}
+type (
+	AuthRepository struct {
+		interfaces.RepositoryBase
+	}
+
+	IAuthRepository interface {
+		interfaces.Repository
+		ExistsUserWithEmail(email string) bool
+	}
+)
 
 func NewAuthRepository(database interfaces.Database) *AuthRepository {
 	return &AuthRepository{
@@ -16,9 +23,5 @@ func NewAuthRepository(database interfaces.Database) *AuthRepository {
 }
 
 func (repo *AuthRepository) ExistsUserWithEmail(email string) bool {
-	if err := repo.Context.Statement.Where("email = ?", email).First(&domain.IdentityUser{}).Error; err != nil {
-		return false
-	}
-
-	return true
+	return repo.Context.Statement.Where("email = ?", email).First(&domain.IdentityUser{}).Error == nil
 }

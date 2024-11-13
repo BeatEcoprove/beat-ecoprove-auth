@@ -34,6 +34,10 @@ func (hs *HttpServer) AddControllers(controllers []shared.Controller) {
 	}
 }
 
+func (hs *HttpServer) AddStaticController(controller shared.Controller) {
+	controller.Route(hs.Instance)
+}
+
 func (hs *HttpServer) Serve(port uint16) {
 	log.Fatal(hs.Instance.Listen(fmt.Sprintf(":%d", port)))
 }
@@ -42,15 +46,8 @@ func errorHandler(ctx *fiber.Ctx, err error) error {
 	switch e := err.(type) {
 	case *shared.Error:
 		return shared.WriteProblemDetails(ctx, *e)
-	case *fiber.Error:
-		return shared.WriteProblemDetails(
-			ctx,
-			shared.Error{
-				Title:  "Bad Input",
-				Status: e.Code,
-				Detail: e.Message,
-			},
-		)
+	case *shared.ValidationError:
+		return shared.WriteProblemDetailsValidation(ctx, *e)
 	default:
 		return shared.WriteProblemDetails(
 			ctx,

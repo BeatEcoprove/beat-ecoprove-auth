@@ -8,16 +8,50 @@ type Repository interface {
 	Create(entity domain.Entity) error
 	Delete(entity domain.Entity) error
 	Get(id string) (domain.Entity, error)
+
+	BeginTransaction() (*Transaction, error)
+	GetOrm() Orm
 }
 
-type RepositoryBase struct {
-	Context Orm
+type (
+	Transaction struct {
+		Repository
+	}
+
+	RepositoryBase struct {
+		Context Orm
+	}
+)
+
+func NewTransaction(repository Repository) *Transaction {
+	return &Transaction{
+		Repository: repository,
+	}
+}
+
+func (tran *Transaction) Rollback() Orm {
+	return tran.GetOrm().Statement.Rollback()
+}
+
+func (tran *Transaction) Commit() Orm {
+	return tran.GetOrm().Statement.Commit()
 }
 
 func NewRepositoryBase(database Database) *RepositoryBase {
 	return &RepositoryBase{
 		Context: database.GetOrm(),
 	}
+}
+
+func (repo *RepositoryBase) BeginTransaction() (*Transaction, error) {
+	cloneRepo := *repo
+	cloneRepo.Context = repo.Context.Statement.Begin()
+
+	return NewTransaction(&cloneRepo), nil
+}
+
+func (repo *RepositoryBase) GetOrm() Orm {
+	return repo.Context
 }
 
 func (repo *RepositoryBase) Create(entity domain.Entity) error {

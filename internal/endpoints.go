@@ -1,29 +1,30 @@
 package internal
 
 import (
-	"errors"
-
-	"github.com/BeatEcoprove/identityService/internal/services"
+	"github.com/BeatEcoprove/identityService/internal/usecases"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
+	"github.com/BeatEcoprove/identityService/pkg/shared"
 	"github.com/gofiber/fiber/v2"
 )
 
 const (
-	CONTROLLER_NAME = "auth"
+	AUTH_CONTROLLER_NAME = "auth"
 )
 
 type AuthController struct {
-	authService *services.AuthService
+	authUseCase *usecases.SignUpUseCase
 }
 
-func NewAuthController(authService *services.AuthService) *AuthController {
+func NewAuthController(
+	authService *usecases.SignUpUseCase,
+) *AuthController {
 	return &AuthController{
-		authService: authService,
+		authUseCase: authService,
 	}
 }
 
 func (c *AuthController) Route(router fiber.Router) {
-	authRoutes := router.Group(CONTROLLER_NAME)
+	authRoutes := router.Group(AUTH_CONTROLLER_NAME)
 
 	authRoutes.Post("sign-up", c.SignUp)
 }
@@ -31,19 +32,19 @@ func (c *AuthController) Route(router fiber.Router) {
 func (c *AuthController) SignUp(ctx *fiber.Ctx) error {
 	var signUpRequest contracts.SignUpRequest
 
-	if err := ctx.BodyParser(&signUpRequest); err != nil {
+	if err := shared.ParseBodyAndValidate(ctx, &signUpRequest); err != nil {
 		return err
 	}
 
-	response, err := c.authService.SignUp(services.SignUpInput{
+	response, err := c.authUseCase.Handle(usecases.SignUpInput{
 		Email:    signUpRequest.Email,
 		Password: signUpRequest.Password,
 		Role:     signUpRequest.Role,
 	})
 
 	if err != nil {
-		return errors.New("an error has occorred in creating an user")
+		return err
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(response)
+	return ctx.Status(fiber.StatusCreated).JSON(response)
 }
