@@ -35,6 +35,7 @@ type (
 )
 
 var (
+	ErrCreatingToken         = errors.New("error creating jwt token")
 	ErrInvalidKidTokenHeader = errors.New("invalid or missing 'kid' in token header")
 	ErrInvalidToken          = errors.New("invalid token")
 )
@@ -92,26 +93,6 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 		Token:    jwtToken,
 		ExpireAt: int(payload.Duration.UTC().Unix()),
 	}, nil
-}
-
-func CreateAuthenticationTokens(payload TokenPayload) (*JwtToken, *JwtToken, error) {
-	env := config.GetCofig()
-
-	payload.Duration = time.Now().Add(time.Duration(env.JWT_ACCESS_EXPIRED) * time.Minute) // per minute
-	accessToken, err := CreateJwtToken(payload)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	payload.Duration = time.Now().Add(time.Duration(env.JWT_REFRESH_EXPIRED) * time.Hour * 24 * 30) // per month
-	refreshToken, err := CreateJwtToken(payload)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return accessToken, refreshToken, nil
 }
 
 func GetClaims(token string, claims jwt.Claims) (interface{}, error) {

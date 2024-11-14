@@ -17,18 +17,21 @@ type (
 	}
 
 	SignUpUseCase struct {
-		authRepo    repositories.IAuthRepository
-		profileRepo repositories.IProfileRepository
+		authRepo     repositories.IAuthRepository
+		profileRepo  repositories.IProfileRepository
+		tokenService services.ITokenService
 	}
 )
 
 func NewSignUpUseCase(
 	authRepo repositories.IAuthRepository,
 	profileRepo repositories.IProfileRepository,
+	tokenService services.ITokenService,
 ) *SignUpUseCase {
 	return &SignUpUseCase{
-		authRepo:    authRepo,
-		profileRepo: profileRepo,
+		authRepo:     authRepo,
+		profileRepo:  profileRepo,
+		tokenService: tokenService,
 	}
 }
 
@@ -75,7 +78,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 	}
 
 	/// 4. Generate the authorization tokens -> Generate Tokens
-	accessToken, refreshToken, err := services.CreateAuthenticationTokens(services.TokenPayload{
+	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
 		UserId:     identityUser.ID,
 		Email:      identityUser.Email,
 		ProfileId:  profile.ID,

@@ -60,6 +60,10 @@ func main() {
 
 	// adapters
 	db := adapters.GetDatabase()
+	defer db.Close()
+
+	redis := adapters.GetRedis()
+	defer redis.Close()
 
 	app := adapters.NewHttpServer(API_VERSION)
 
@@ -68,7 +72,10 @@ func main() {
 	profileRepository := repositories.NewProfileRepository(db)
 
 	// services
-	authUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository)
+	tokenService := services.NewTokenService(redis)
+
+	// use cases
+	authUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository, tokenService)
 
 	// controllers
 	staticController := internal.NewStaticController()

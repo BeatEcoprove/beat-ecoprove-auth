@@ -18,6 +18,10 @@ type Config struct {
 	JWT_ACCESS_EXPIRED  int
 	JWT_REFRESH_EXPIRED int
 	JWT_SECRET          string
+
+	REDIS_HOST string
+	REDIS_PORT string
+	REDIS_DB   int
 }
 
 func LoadEnv(path string) {
@@ -45,6 +49,10 @@ func LoadEnv(path string) {
 		JWT_ACCESS_EXPIRED:  viper.GetInt("JWT_ACCESS_EXPIRED"),
 		JWT_REFRESH_EXPIRED: viper.GetInt("JWT_REFRESH_EXPIRED"),
 		JWT_SECRET:          viper.GetString("JWT_SECRET"),
+
+		REDIS_HOST: viper.GetString("REDIS_HOST"),
+		REDIS_PORT: viper.GetString("REDIS_PORT"),
+		REDIS_DB:   viper.GetInt("REDIS_DB"),
 	}
 }
 

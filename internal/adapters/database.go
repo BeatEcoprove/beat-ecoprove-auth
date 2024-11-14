@@ -24,6 +24,9 @@ func (gdc *GormDatabase) GetOrm() interfaces.Orm {
 	return gdc.conn
 }
 
+func (gdc *GormDatabase) Close() {
+}
+
 func newDatabaseGorm(connectionString string) (*GormDatabase, error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: connectionString,

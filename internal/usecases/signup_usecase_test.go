@@ -26,10 +26,12 @@ type (
 )
 
 var (
-	db interfaces.Database
+	db    interfaces.Database
+	redis interfaces.Redis
 
 	authRepository    repositories.IAuthRepository
 	profileRepository repositories.IProfileRepository
+	tokenService      services.ITokenService
 
 	sut *SignUpUseCase
 )
@@ -76,6 +78,9 @@ func TestMain(m *testing.M) {
 
 	db = adapters.GetDatabaseWithConnectionString(connectionString)
 
+	redis := adapters.GetRedis()
+	defer redis.Close()
+
 	exitCode := m.Run()
 
 	// After
@@ -88,7 +93,9 @@ func Test_SignUp_UseCase(t *testing.T) {
 	// Arrange
 	authRepository = repositories.NewAuthRepository(db)
 	profileRepository = repositories.NewProfileRepository(db)
-	sut = NewSignUpUseCase(authRepository, profileRepository)
+	tokenService = services.NewTokenService(redis)
+
+	sut = NewSignUpUseCase(authRepository, profileRepository, tokenService)
 
 	t.Run("Should not create an account if the email is already in use", func(t *testing.T) {
 		// Arrange

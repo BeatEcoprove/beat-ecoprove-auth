@@ -15,5 +15,14 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    container_name: redis
+    image: redis/redis-stack:latest
+    ports:
+      - "${REDIS_PORT}:6379"
+      - "${REDIS_UI_PORT}:8001"
+    networks:
+      - dev-net
+
 networks:
   dev-net:
