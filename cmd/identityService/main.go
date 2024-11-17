@@ -4,6 +4,7 @@ import (
 	"github.com/BeatEcoprove/identityService/config"
 	"github.com/BeatEcoprove/identityService/internal"
 	"github.com/BeatEcoprove/identityService/internal/adapters"
+	"github.com/BeatEcoprove/identityService/internal/middlewares"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
 	"github.com/BeatEcoprove/identityService/internal/usecases"
 	"github.com/BeatEcoprove/identityService/pkg/services"
@@ -83,13 +84,17 @@ func main() {
 	tokenService := services.NewTokenService(redis)
 	emailService := services.NewEmailService(rabbitMQ)
 
+	// midlewares
+	authMiddleware := middlewares.NewAuthorizationMiddleware(tokenService)
+
 	// use cases
 	signUpUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository, tokenService, emailService)
 	loginUseCase := usecases.NewLoginUseCase(authRepository, profileRepository, tokenService)
+	attachProfileUseCase := usecases.NewAttachProfileUseCase(authRepository, profileRepository)
 
 	// controllers
 	staticController := internal.NewStaticController()
-	authController := internal.NewAuthController(signUpUseCase, loginUseCase)
+	authController := internal.NewAuthController(signUpUseCase, loginUseCase, attachProfileUseCase, authMiddleware)
 
 	app.AddStaticController(staticController)
 	app.AddControllers([]shared.Controller{

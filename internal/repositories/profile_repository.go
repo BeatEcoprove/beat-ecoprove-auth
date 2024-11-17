@@ -7,11 +7,11 @@ import (
 
 type (
 	ProfileRepository struct {
-		interfaces.RepositoryBase
+		interfaces.RepositoryBase[*domain.Profile]
 	}
 
 	IProfileRepository interface {
-		interfaces.Repository
+		interfaces.Repository[*domain.Profile]
 		GetMainProfileByAuthId(authId string) (*domain.Profile, error)
 		GetAttachProfiles(authId string) ([]domain.Profile, error)
 	}
@@ -19,7 +19,7 @@ type (
 
 func NewProfileRepository(database interfaces.Database) *ProfileRepository {
 	return &ProfileRepository{
-		RepositoryBase: *interfaces.NewRepositoryBase(database),
+		RepositoryBase: *interfaces.NewRepositoryBase[*domain.Profile](database),
 	}
 }
 

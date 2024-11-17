@@ -10,6 +10,7 @@ import (
 type (
 	ITokenService interface {
 		CreateAuthenticationTokens(payload TokenPayload) (*JwtToken, *JwtToken, error)
+		ValidateToken(authId, token string) error
 	}
 
 	TokenService struct {
@@ -47,6 +48,20 @@ func generateAuthenticationTokens(payload TokenPayload, accessTokenExp, refreshT
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func (ts *TokenService) ValidateToken(authId, token string) error {
+	storedToken, err := ts.redis.GetValue(NewAccessTokenKey(authId))
+
+	if err != nil {
+		return err
+	}
+
+	if storedToken != token {
+		return ErrInvalidToken
+	}
+
+	return nil
 }
 
 func (ts *TokenService) CreateAuthenticationTokens(payload TokenPayload) (*JwtToken, *JwtToken, error) {

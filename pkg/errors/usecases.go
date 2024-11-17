@@ -15,9 +15,21 @@ var (
 		"The password or email must be incorrect, please try again later",
 	)
 
+	USER_NOT_FOUND = shared.NewNotFoundError(
+		"user-not-found",
+		"User not found",
+		"The user does not exists",
+	)
+
 	ROLE_NOT_FOUND = shared.NewNotFoundError(
 		"role-not-found",
 		"Role not found",
-		"PLease provide an valid role",
+		"Please provide an valid role",
+	)
+
+	GRANT_TYPE_NOT_FOUND = shared.NewNotFoundError(
+		"grant-type-not-found",
+		"Grant Type not found",
+		"Please provide an valid profile grant type",
 	)
 )

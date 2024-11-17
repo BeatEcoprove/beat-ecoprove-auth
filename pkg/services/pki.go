@@ -124,7 +124,7 @@ func storeJwks(jwks *JWKS, jwksPath string) error {
 }
 
 func generateKid() string {
-	pubKeyBytes := x509.MarshalPKCS1PublicKey(pubKey)
+	pubKeyBytes := x509.MarshalPKCS1PublicKey(PubKey)
 	return fmt.Sprintf("%x", sha256.Sum256(pubKeyBytes))
 }
 
@@ -134,8 +134,8 @@ func CreateJWKS() (*JWKS, error) {
 	jwk := JWK{
 		Kty: "RSA",
 		Kid: generateKid(),
-		N:   base64URLUInt(pubKey.N),
-		E:   base64URLUInt(big.NewInt(int64(pubKey.E))),
+		N:   base64URLUInt(PubKey.N),
+		E:   base64URLUInt(big.NewInt(int64(PubKey.E))),
 		Use: "sig",
 		Alg: "RS256",
 	}

@@ -7,11 +7,12 @@ import (
 
 type (
 	AuthRepository struct {
-		interfaces.RepositoryBase
+		interfaces.RepositoryBase[*domain.IdentityUser]
 	}
 
 	IAuthRepository interface {
-		interfaces.Repository
+		interfaces.Repository[*domain.IdentityUser]
+		ExistsUserWithId(id string) bool
 		ExistsUserWithEmail(email string) bool
 		GetUserByEmail(email string) (*domain.IdentityUser, error)
 	}
@@ -19,8 +20,12 @@ type (
 
 func NewAuthRepository(database interfaces.Database) *AuthRepository {
 	return &AuthRepository{
-		RepositoryBase: *interfaces.NewRepositoryBase(database),
+		RepositoryBase: *interfaces.NewRepositoryBase[*domain.IdentityUser](database),
 	}
+}
+
+func (repo *AuthRepository) ExistsUserWithId(id string) bool {
+	return repo.Context.Statement.Where("id = ?", id).First(&domain.IdentityUser{}).Error == nil
 }
 
 func (repo *AuthRepository) ExistsUserWithEmail(email string) bool {

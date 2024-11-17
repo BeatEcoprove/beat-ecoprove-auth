@@ -4,10 +4,11 @@ import (
 	"github.com/BeatEcoprove/identityService/pkg/domain"
 )
 
-type Repository interface {
-	Create(entity domain.Entity) error
-	Delete(entity domain.Entity) error
-	Get(id string) (domain.Entity, error)
+type Repository[T domain.Entity] interface {
+	Create(entity T) error
+	Delete(entity T) error
+	Update(entity T) error
+	Get(id string) (T, error)
 
 	BeginTransaction() (*Transaction, error)
 	GetOrm() Orm
@@ -15,15 +16,15 @@ type Repository interface {
 
 type (
 	Transaction struct {
-		Repository
+		Repository[domain.Entity]
 	}
 
-	RepositoryBase struct {
+	RepositoryBase[T domain.Entity] struct {
 		Context Orm
 	}
 )
 
-func NewTransaction(repository Repository) *Transaction {
+func NewTransaction(repository Repository[domain.Entity]) *Transaction {
 	return &Transaction{
 		Repository: repository,
 	}
@@ -43,24 +44,25 @@ func (tran *Transaction) Commit() Orm {
 	return orm
 }
 
-func NewRepositoryBase(database Database) *RepositoryBase {
-	return &RepositoryBase{
+func NewRepositoryBase[T domain.Entity](database Database) *RepositoryBase[T] {
+	return &RepositoryBase[T]{
 		Context: database.GetOrm(),
 	}
 }
 
-func (repo *RepositoryBase) BeginTransaction() (*Transaction, error) {
-	cloneRepo := *repo
-	cloneRepo.Context = repo.Context.Statement.Begin()
+func (repo *RepositoryBase[T]) BeginTransaction() (*Transaction, error) {
+	cloneRepo := &RepositoryBase[domain.Entity]{
+		Context: repo.Context.Statement.Begin(),
+	}
 
-	return NewTransaction(&cloneRepo), nil
+	return NewTransaction(cloneRepo), nil
 }
 
-func (repo *RepositoryBase) GetOrm() Orm {
+func (repo *RepositoryBase[T]) GetOrm() Orm {
 	return repo.Context
 }
 
-func (repo *RepositoryBase) Create(entity domain.Entity) error {
+func (repo *RepositoryBase[T]) Create(entity T) error {
 	if err := repo.Context.Statement.Create(entity).Error; err != nil {
 		return err
 	}
@@ -68,7 +70,7 @@ func (repo *RepositoryBase) Create(entity domain.Entity) error {
 	return nil
 }
 
-func (repo *RepositoryBase) Delete(entity domain.Entity) error {
+func (repo *RepositoryBase[T]) Delete(entity T) error {
 	if err := repo.Context.Statement.Delete(entity).Error; err != nil {
 		return err
 	}
@@ -76,11 +78,15 @@ func (repo *RepositoryBase) Delete(entity domain.Entity) error {
 	return nil
 }
 
-func (repo *RepositoryBase) Get(id string) (domain.Entity, error) {
-	var entity domain.Entity
+func (repo *RepositoryBase[T]) Update(entity T) error {
+	return repo.Context.Statement.Save(entity).Error
+}
+
+func (repo *RepositoryBase[T]) Get(id string) (T, error) {
+	var entity T
 
 	if err := repo.Context.Statement.Where("id = ?", id).First(&entity).Error; err != nil {
-		return nil, err
+		return entity, err
 	}
 
 	return entity, nil

@@ -41,7 +41,7 @@ var (
 )
 
 var privKey *rsa.PrivateKey
-var pubKey *rsa.PublicKey
+var PubKey *rsa.PublicKey
 
 func LoadKeys(publicKey, privateKey []byte) error {
 	loadPrivKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
@@ -57,7 +57,7 @@ func LoadKeys(publicKey, privateKey []byte) error {
 	}
 
 	privKey = loadPrivKey
-	pubKey = loadPubKey
+	PubKey = loadPubKey
 
 	return nil
 }
@@ -95,7 +95,7 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 	}, nil
 }
 
-func GetClaims(token string, claims jwt.Claims) (interface{}, error) {
+func GetClaims(token string, claims jwt.Claims) error {
 	jwtToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, jwt.ErrSignatureInvalid
@@ -111,22 +111,20 @@ func GetClaims(token string, claims jwt.Claims) (interface{}, error) {
 			return nil, ErrInvalidToken
 		}
 
-		return pubKey, nil
+		return PubKey, nil
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if !jwtToken.Valid {
-		return nil, ErrInvalidToken
+		return ErrInvalidToken
 	}
 
-	return claims, nil
+	return nil
 }
 
 func ValidateToken(token string) bool {
-	_, err := GetClaims(token, &AuthClaims{})
-
-	return err == nil
+	return GetClaims(token, &AuthClaims{}) == nil
 }

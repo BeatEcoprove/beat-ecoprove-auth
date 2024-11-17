@@ -1,8 +1,6 @@
 package domain
 
 import (
-	"errors"
-
 	interfaces "github.com/BeatEcoprove/identityService/pkg/domain"
 	"github.com/BeatEcoprove/identityService/pkg/services"
 	"gorm.io/gorm"
@@ -15,8 +13,6 @@ const (
 	Organization
 	Admin
 )
-
-var ErrUndefinedRole = errors.New("role not defined")
 
 type IdentityUser struct {
 	interfaces.EntityBase
