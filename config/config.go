@@ -22,6 +22,16 @@ type Config struct {
 	REDIS_HOST string
 	REDIS_PORT string
 	REDIS_DB   int
+
+	RABBIT_MQ_HOST           string
+	RABBIT_MQ_PORT           string
+	RABBITMQ_DEFAULT_USER    string
+	RABBITMQ_DEFAULT_PASS    string
+	RABBITMQ_DEFAULT_VHOST   string
+	RABBIT_MQ_EXCHANGE       string
+	RABBIT_MQ_QUEUE_ENTITIES string
+	RABBIT_MQ_QUEUE_MAIL     string
+	RABBIT_MQ_ROUTING_KEY    string
 }
 
 func LoadEnv(path string) {
@@ -53,6 +63,16 @@ func LoadEnv(path string) {
 		REDIS_HOST: viper.GetString("REDIS_HOST"),
 		REDIS_PORT: viper.GetString("REDIS_PORT"),
 		REDIS_DB:   viper.GetInt("REDIS_DB"),
+
+		RABBIT_MQ_HOST:           viper.GetString("RABBIT_MQ_HOST"),
+		RABBIT_MQ_PORT:           viper.GetString("RABBIT_MQ_PORT"),
+		RABBITMQ_DEFAULT_USER:    viper.GetString("RABBITMQ_DEFAULT_USER"),
+		RABBITMQ_DEFAULT_PASS:    viper.GetString("RABBITMQ_DEFAULT_PASS"),
+		RABBITMQ_DEFAULT_VHOST:   viper.GetString("RABBITMQ_DEFAULT_VHOST"),
+		RABBIT_MQ_EXCHANGE:       viper.GetString("RABBIT_MQ_EXCHANGE"),
+		RABBIT_MQ_QUEUE_ENTITIES: viper.GetString("RABBIT_MQ_QUEUE_ENTITIES"),
+		RABBIT_MQ_QUEUE_MAIL:     viper.GetString("RABBIT_MQ_QUEUE_MAIL"),
+		RABBIT_MQ_ROUTING_KEY:    viper.GetString("RABBIT_MQ_ROUTING_KEY"),
 	}
 }
 

@@ -59,16 +59,3 @@ func (u *IdentityUser) BeforeCreate(tx *gorm.DB) error {
 	u.DeletedAt = nil
 	return nil
 }
-
-func GetRole(role Role) (string, error) {
-	switch role {
-	case Client:
-		return "client", nil
-	case Admin:
-		return "admin", nil
-	case Organization:
-		return "organization", nil
-	}
-
-	return "", ErrUndefinedRole
-}

@@ -30,11 +30,17 @@ func NewTransaction(repository Repository) *Transaction {
 }
 
 func (tran *Transaction) Rollback() Orm {
-	return tran.GetOrm().Statement.Rollback()
+	orm := tran.GetOrm().Statement.Rollback()
+	tran.Repository = nil
+
+	return orm
 }
 
 func (tran *Transaction) Commit() Orm {
-	return tran.GetOrm().Statement.Commit()
+	orm := tran.GetOrm().Statement.Commit()
+	tran.Repository = nil
+
+	return orm
 }
 
 func NewRepositoryBase(database Database) *RepositoryBase {

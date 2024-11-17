@@ -30,7 +30,7 @@ func HashPassword(password string, salt string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func CheckPasswordHash(password string, salt, hash string) bool {
+func CheckPasswordHash(password, salt, hash string) bool {
 	saltedPassword := password + salt
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(saltedPassword))
 

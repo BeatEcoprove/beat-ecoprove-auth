@@ -10,7 +10,7 @@ services:
     networks:
       - dev-net
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: [ "CMD", "pg_isready" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,6 +23,23 @@ services:
       - "${REDIS_UI_PORT}:8001"
     networks:
       - dev-net
+
+  broker:
+    container_name: rabbitmq
+    build:
+      context: docker/rabbitmq
+    ports:
+      - "${RABBIT_MQ_PORT}:5672"
+      - "${RABBIT_MQ_UI_PORT}:15672"
+    env_file:
+      - .env
+    networks:
+      - dev-net
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping", "-q" ]
+      interval: 10s
+      timeout: 10s
+      retries: 15
 
 networks:
   dev-net:

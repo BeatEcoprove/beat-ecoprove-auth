@@ -2,8 +2,8 @@ package contracts
 
 type (
 	LoginRequest struct {
-		Email    string
-		Password string
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required,min=8"`
 	}
 
 	SignUpRequest struct {
@@ -13,18 +13,18 @@ type (
 	}
 
 	AccountResponse struct {
-		UserId     string
-		Email      string
-		ProfileId  string
-		ProfileIds []string
-		Role       string
+		UserId     string   `json:"user_id"`
+		Email      string   `json:"email"`
+		ProfileId  string   `json:"profile_id"`
+		ProfileIds []string `json:"profile_ids"`
+		Role       string   `json:"role"`
 	}
 
 	AuthResponse struct {
-		Details                AccountResponse
-		AccessToken            string
-		AccessTokenExpiration  int
-		RefreshToken           string
-		RefreshTokenExpiration int
+		Details                AccountResponse `json:"details"`
+		AccessToken            string          `json:"access_token"`
+		AccessTokenExpiration  int             `json:"access_token_exp"`
+		RefreshToken           string          `json:"refresh_token"`
+		RefreshTokenExpiration int             `json:"refresh_token_exp"`
 	}
 )

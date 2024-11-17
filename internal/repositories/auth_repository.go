@@ -13,6 +13,7 @@ type (
 	IAuthRepository interface {
 		interfaces.Repository
 		ExistsUserWithEmail(email string) bool
+		GetUserByEmail(email string) (*domain.IdentityUser, error)
 	}
 )
 
@@ -24,4 +25,14 @@ func NewAuthRepository(database interfaces.Database) *AuthRepository {
 
 func (repo *AuthRepository) ExistsUserWithEmail(email string) bool {
 	return repo.Context.Statement.Where("email = ?", email).First(&domain.IdentityUser{}).Error == nil
+}
+
+func (repo *AuthRepository) GetUserByEmail(email string) (*domain.IdentityUser, error) {
+	var identityUser *domain.IdentityUser
+
+	if err := repo.Context.Statement.Where("email = ?", email).First(&identityUser).Error; err != nil {
+		return nil, err
+	}
+
+	return identityUser, nil
 }

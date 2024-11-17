@@ -26,12 +26,14 @@ type (
 )
 
 var (
-	db    interfaces.Database
-	redis interfaces.Redis
+	db       interfaces.Database
+	redis    interfaces.Redis
+	rabbitmq interfaces.RabbitMq
 
 	authRepository    repositories.IAuthRepository
 	profileRepository repositories.IProfileRepository
 	tokenService      services.ITokenService
+	emailService      services.IEmailService
 
 	sut *SignUpUseCase
 )
@@ -81,6 +83,14 @@ func TestMain(m *testing.M) {
 	redis := adapters.GetRedis()
 	defer redis.Close()
 
+	rabbitmq, err := adapters.GetRabbitMqConnection()
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer rabbitmq.Close()
+
 	exitCode := m.Run()
 
 	// After
@@ -94,8 +104,9 @@ func Test_SignUp_UseCase(t *testing.T) {
 	authRepository = repositories.NewAuthRepository(db)
 	profileRepository = repositories.NewProfileRepository(db)
 	tokenService = services.NewTokenService(redis)
+	emailService = services.NewEmailService(rabbitmq)
 
-	sut = NewSignUpUseCase(authRepository, profileRepository, tokenService)
+	sut = NewSignUpUseCase(authRepository, profileRepository, tokenService, emailService)
 
 	t.Run("Should not create an account if the email is already in use", func(t *testing.T) {
 		// Arrange

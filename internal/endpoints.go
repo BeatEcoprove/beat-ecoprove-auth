@@ -12,21 +12,44 @@ const (
 )
 
 type AuthController struct {
-	authUseCase *usecases.SignUpUseCase
+	signUpUseCase *usecases.SignUpUseCase
+	loginUseCase  *usecases.LoginUseCase
 }
 
 func NewAuthController(
-	authService *usecases.SignUpUseCase,
+	signUpUseCase *usecases.SignUpUseCase,
+	loginUseCase *usecases.LoginUseCase,
 ) *AuthController {
 	return &AuthController{
-		authUseCase: authService,
+		signUpUseCase: signUpUseCase,
+		loginUseCase:  loginUseCase,
 	}
 }
 
 func (c *AuthController) Route(router fiber.Router) {
 	authRoutes := router.Group(AUTH_CONTROLLER_NAME)
 
+	authRoutes.Post("login", c.Login)
 	authRoutes.Post("sign-up", c.SignUp)
+}
+
+func (c *AuthController) Login(ctx *fiber.Ctx) error {
+	var loginRequest contracts.SignUpRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &loginRequest); err != nil {
+		return err
+	}
+
+	response, err := c.loginUseCase.Handle(usecases.LoginInput{
+		Email:    loginRequest.Email,
+		Password: loginRequest.Password,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
 }
 
 func (c *AuthController) SignUp(ctx *fiber.Ctx) error {
@@ -36,7 +59,7 @@ func (c *AuthController) SignUp(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.authUseCase.Handle(usecases.SignUpInput{
+	response, err := c.signUpUseCase.Handle(usecases.SignUpInput{
 		Email:    signUpRequest.Email,
 		Password: signUpRequest.Password,
 		Role:     signUpRequest.Role,

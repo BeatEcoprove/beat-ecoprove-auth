@@ -65,6 +65,14 @@ func main() {
 	redis := adapters.GetRedis()
 	defer redis.Close()
 
+	rabbitMQ, err := adapters.GetRabbitMqConnection()
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer rabbitMQ.Close()
+
 	app := adapters.NewHttpServer(API_VERSION)
 
 	// repositories
@@ -73,13 +81,15 @@ func main() {
 
 	// services
 	tokenService := services.NewTokenService(redis)
+	emailService := services.NewEmailService(rabbitMQ)
 
 	// use cases
-	authUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository, tokenService)
+	signUpUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository, tokenService, emailService)
+	loginUseCase := usecases.NewLoginUseCase(authRepository, profileRepository, tokenService)
 
 	// controllers
 	staticController := internal.NewStaticController()
-	authController := internal.NewAuthController(authUseCase)
+	authController := internal.NewAuthController(signUpUseCase, loginUseCase)
 
 	app.AddStaticController(staticController)
 	app.AddControllers([]shared.Controller{

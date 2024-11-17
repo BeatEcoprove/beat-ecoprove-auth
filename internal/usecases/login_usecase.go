@@ -11,83 +11,73 @@ import (
 
 type (
 	// input
-	SignUpInput struct {
+	LoginInput struct {
 		Email    string
 		Password string
-		Role     int
 	}
 
-	SignUpUseCase struct {
+	LoginUseCase struct {
 		authRepo     repositories.IAuthRepository
 		profileRepo  repositories.IProfileRepository
 		tokenService services.ITokenService
-
-		emailService services.IEmailService
 	}
 )
 
-func NewSignUpUseCase(
+func NewLoginUseCase(
 	authRepo repositories.IAuthRepository,
 	profileRepo repositories.IProfileRepository,
 	tokenService services.ITokenService,
-	emailService services.IEmailService,
-) *SignUpUseCase {
-	return &SignUpUseCase{
+) *LoginUseCase {
+	return &LoginUseCase{
 		authRepo:     authRepo,
 		profileRepo:  profileRepo,
 		tokenService: tokenService,
-		emailService: emailService,
 	}
 }
 
-func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, error) {
+func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error) {
 	// Setps to create an user
 	/// 1. Exists already this user registered?
-	if ok := as.authRepo.ExistsUserWithEmail(input.Email); ok {
-		return nil, fails.USER_ALREADY_EXISTS
+	if ok := as.authRepo.ExistsUserWithEmail(input.Email); !ok {
+		return nil, fails.USER_AUTH_FAILED
 	}
 
 	if err := services.ValidatePassword(input.Password); err != nil {
-		return nil, err
+		return nil, fails.USER_AUTH_FAILED
 	}
 
-	role, err := domain.GetRole(domain.Role(input.Role))
+	identityUser, err := as.authRepo.GetUserByEmail(input.Email)
 
 	if err != nil {
-		return nil, fails.ROLE_NOT_FOUND
+		return nil, fails.USER_AUTH_FAILED
 	}
 
-	/// 2. If not then register the user
-	identityUser := domain.NewIdentityUser(
-		input.Email,
-		input.Password,
-		domain.Role(input.Role),
-	)
+	if !services.CheckPasswordHash(input.Password, identityUser.Salt, identityUser.Password) {
+		return nil, fails.USER_AUTH_FAILED
+	}
 
-	signUpTransaction, err := as.authRepo.BeginTransaction()
+	/// Get the correct profile
+	attachedProfiles, err := as.profileRepo.GetAttachProfiles(identityUser.ID)
 
 	if err != nil {
-		return nil, fails.InternalServerError()
+		return nil, fails.USER_AUTH_FAILED
 	}
 
-	if err := signUpTransaction.Create(identityUser); err != nil {
-		return nil, fails.InternalServerError()
+	role, err := domain.GetRole(identityUser.Role)
+
+	if err != nil {
+		return nil, fails.USER_AUTH_FAILED
 	}
 
-	/// 3. Generate an ProfileID -> Which will be the Main Profile
-	//// Generate the profile info and the type
-	profile := domain.NewProfile(identityUser.ID, domain.Main)
-
-	if err := signUpTransaction.Create(profile); err != nil {
-		return nil, fails.InternalServerError()
-	}
+	// filter profiles
+	mainProfile, subProfiles := domain.FilterProfiles(attachedProfiles)
 
 	/// 4. Generate the authorization tokens -> Generate Tokens
 	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
 		UserId:     identityUser.ID,
 		Email:      identityUser.Email,
-		ProfileId:  profile.ID,
-		ProfileIds: make([]string, 0),
+		ProfileId:  mainProfile.ID,
+		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
 		Role:       role,
 	})
 
@@ -95,14 +85,10 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, fails.InternalServerError()
 	}
 
-	if err := signUpTransaction.Commit().Error; err != nil {
-		return nil, fails.InternalServerError()
-	}
-
 	return mappers.ToAuthResponse(
 		identityUser,
-		profile,
-		make([]domain.Profile, 0),
+		mainProfile,
+		subProfiles,
 		role,
 		accessToken,
 		refreshToken,
