@@ -16,6 +16,12 @@ var (
 		"Authorization Failed",
 		"Please provide an valid access token, try again later",
 	)
+
+	INVALID_REFRESH_TOKEN = shared.NewUnauthorizedError(
+		"invalid-refresh-token",
+		"Authorization Failed",
+		"Please provide an valid refresh token, try again later",
+	)
 )
 
 func InternalServerError() *shared.Error {

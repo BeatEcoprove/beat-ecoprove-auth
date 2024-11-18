@@ -85,16 +85,23 @@ func main() {
 	emailService := services.NewEmailService(rabbitMQ)
 
 	// midlewares
-	authMiddleware := middlewares.NewAuthorizationMiddleware(tokenService)
+	authMiddleware := middlewares.NewAuthorizationMiddleware(authRepository, tokenService)
 
 	// use cases
 	signUpUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository, tokenService, emailService)
 	loginUseCase := usecases.NewLoginUseCase(authRepository, profileRepository, tokenService)
 	attachProfileUseCase := usecases.NewAttachProfileUseCase(authRepository, profileRepository)
+	refreshTokensUseCase := usecases.NewRefreshTokensUseCase(authRepository, profileRepository, tokenService)
 
 	// controllers
 	staticController := internal.NewStaticController()
-	authController := internal.NewAuthController(signUpUseCase, loginUseCase, attachProfileUseCase, authMiddleware)
+	authController := internal.NewAuthController(
+		signUpUseCase,
+		loginUseCase,
+		attachProfileUseCase,
+		refreshTokensUseCase,
+		authMiddleware,
+	)
 
 	app.AddStaticController(staticController)
 	app.AddControllers([]shared.Controller{

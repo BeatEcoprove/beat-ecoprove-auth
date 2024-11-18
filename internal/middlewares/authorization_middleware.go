@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"github.com/BeatEcoprove/identityService/internal/adapters"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
 	fails "github.com/BeatEcoprove/identityService/pkg/errors"
 	"github.com/BeatEcoprove/identityService/pkg/services"
@@ -13,19 +12,22 @@ import (
 
 type (
 	AuthorizationMiddleware struct {
-		tokenService services.ITokenService
+		authRepository repositories.IAuthRepository
+		tokenService   services.ITokenService
 	}
 )
 
 func NewAuthorizationMiddleware(
+	authRepository repositories.IAuthRepository,
 	tokenService services.ITokenService,
 ) *AuthorizationMiddleware {
 	return &AuthorizationMiddleware{
-		tokenService: tokenService,
+		authRepository: authRepository,
+		tokenService:   tokenService,
 	}
 }
 
-func (am *AuthorizationMiddleware) Handle(ctx *fiber.Ctx) error {
+func (am *AuthorizationMiddleware) tokenHandler(ctx *fiber.Ctx, validateToken func(claims *services.AuthClaims, token *jwt.Token) error) error {
 	return jwtware.New(jwtware.Config{
 		Claims: &services.AuthClaims{},
 		SigningKey: jwtware.SigningKey{
@@ -33,19 +35,17 @@ func (am *AuthorizationMiddleware) Handle(ctx *fiber.Ctx) error {
 			Key:    services.PubKey,
 		},
 		SuccessHandler: func(ctx *fiber.Ctx) error {
-			authRepository := repositories.NewAuthRepository(adapters.GetDatabase())
-
 			token, claims, err := GetClaims(ctx)
 
 			if err != nil {
 				return shared.WriteProblemDetails(ctx, *fails.INVALID_ACCESS_TOKEN)
 			}
 
-			if err := am.tokenService.ValidateToken(claims.Subject, token.Raw); err != nil {
-				return shared.WriteProblemDetails(ctx, *fails.INVALID_ACCESS_TOKEN)
+			if err := validateToken(claims, token); err != nil {
+				return err
 			}
 
-			if ok := authRepository.ExistsUserWithId(claims.Subject); !ok {
+			if ok := am.authRepository.ExistsUserWithId(claims.Subject); !ok {
 				return shared.WriteProblemDetails(ctx, *fails.DONT_HAVE_ACCESS_TO_RESOURCE)
 			}
 
@@ -55,6 +55,30 @@ func (am *AuthorizationMiddleware) Handle(ctx *fiber.Ctx) error {
 			return shared.WriteProblemDetails(ctx, *fails.DONT_HAVE_ACCESS_TO_RESOURCE)
 		},
 	})(ctx)
+}
+
+func (am *AuthorizationMiddleware) AccessTokenHandler(ctx *fiber.Ctx) error {
+	return am.tokenHandler(ctx, func(claims *services.AuthClaims, token *jwt.Token) error {
+		err := am.tokenService.ValidateToken(claims.Subject, token.Raw, services.AccessTokenKey)
+
+		if err != nil {
+			return fails.INVALID_ACCESS_TOKEN
+		}
+
+		return nil
+	})
+}
+
+func (am *AuthorizationMiddleware) RefreshTokenHandler(ctx *fiber.Ctx) error {
+	return am.tokenHandler(ctx, func(claims *services.AuthClaims, token *jwt.Token) error {
+		err := am.tokenService.ValidateToken(claims.Subject, token.Raw, services.RefreshTokenKey)
+
+		if err != nil {
+			return fails.INVALID_REFRESH_TOKEN
+		}
+
+		return nil
+	})
 }
 
 func GetClaims(ctx *fiber.Ctx) (*jwt.Token, *services.AuthClaims, error) {

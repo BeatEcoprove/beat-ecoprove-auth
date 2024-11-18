@@ -8,14 +8,21 @@ import (
 )
 
 type (
+	TokenKey string
+
 	ITokenService interface {
 		CreateAuthenticationTokens(payload TokenPayload) (*JwtToken, *JwtToken, error)
-		ValidateToken(authId, token string) error
+		ValidateToken(authId, token string, key TokenKey) error
 	}
 
 	TokenService struct {
 		redis interfaces.Redis
 	}
+)
+
+const (
+	AccessTokenKey  TokenKey = "access"
+	RefreshTokenKey TokenKey = "refresh"
 )
 
 func NewTokenService(redis interfaces.Redis) *TokenService {
@@ -25,11 +32,11 @@ func NewTokenService(redis interfaces.Redis) *TokenService {
 }
 
 func NewAccessTokenKey(userId string) interfaces.RedisKey {
-	return interfaces.NewRedisKey(userId, "access")
+	return interfaces.NewRedisKey(userId, string(AccessTokenKey))
 }
 
 func NewRefreshTokenKey(userId string) interfaces.RedisKey {
-	return interfaces.NewRedisKey(userId, "refresh")
+	return interfaces.NewRedisKey(userId, string(RefreshTokenKey))
 }
 
 func generateAuthenticationTokens(payload TokenPayload, accessTokenExp, refreshTokenExp time.Duration) (*JwtToken, *JwtToken, error) {
@@ -50,8 +57,19 @@ func generateAuthenticationTokens(payload TokenPayload, accessTokenExp, refreshT
 	return accessToken, refreshToken, nil
 }
 
-func (ts *TokenService) ValidateToken(authId, token string) error {
-	storedToken, err := ts.redis.GetValue(NewAccessTokenKey(authId))
+func (ts *TokenService) ValidateToken(authId, token string, key TokenKey) error {
+	var tokenKey interfaces.RedisKey
+
+	switch key {
+	case AccessTokenKey:
+		tokenKey = NewAccessTokenKey(authId)
+	case RefreshTokenKey:
+		tokenKey = NewRefreshTokenKey(authId)
+	default:
+		return ErrInvalidToken
+	}
+
+	storedToken, err := ts.redis.GetValue(tokenKey)
 
 	if err != nil {
 		return err

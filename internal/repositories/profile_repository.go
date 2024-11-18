@@ -12,6 +12,7 @@ type (
 
 	IProfileRepository interface {
 		interfaces.Repository[*domain.Profile]
+		IsProfileFromUserId(authId, profileId string) bool
 		GetMainProfileByAuthId(authId string) (*domain.Profile, error)
 		GetAttachProfiles(authId string) ([]domain.Profile, error)
 	}
@@ -21,6 +22,10 @@ func NewProfileRepository(database interfaces.Database) *ProfileRepository {
 	return &ProfileRepository{
 		RepositoryBase: *interfaces.NewRepositoryBase[*domain.Profile](database),
 	}
+}
+
+func (repo *ProfileRepository) IsProfileFromUserId(authId, profileId string) bool {
+	return repo.Context.Statement.Where("auth_id = ?", authId).Where("id = ?", profileId).First(&domain.Profile{}).Error == nil
 }
 
 func (repo *ProfileRepository) GetMainProfileByAuthId(authId string) (*domain.Profile, error) {

@@ -32,4 +32,22 @@ var (
 		"Grant Type not found",
 		"Please provide an valid profile grant type",
 	)
+
+	PROFILE_DOES_NOT_BELONG_TO_USER = shared.NewConflitError(
+		"profile-does-not-belong-to-user",
+		"Profile does not belong to user",
+		"Please provide an profile id that you have access",
+	)
+
+	PROFILE_NOT_FOUND = shared.NewNotFoundError(
+		"profile-not-found",
+		"Profile not found",
+		"The profile does not exists",
+	)
+
+	PROFILES_NOT_FOUND = shared.NewNotFoundError(
+		"profiles-not-found",
+		"Profiles not found",
+		"No attached profiles were found",
+	)
 )

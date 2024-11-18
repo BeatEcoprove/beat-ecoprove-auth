@@ -16,6 +16,7 @@ type AuthController struct {
 	signUpUseCase        *usecases.SignUpUseCase
 	loginUseCase         *usecases.LoginUseCase
 	attachProfileUseCase *usecases.AttachProfileUseCase
+	refreshTokensUseCase *usecases.RefreshTokensUseCase
 
 	authMiddleware *middlewares.AuthorizationMiddleware
 }
@@ -24,12 +25,14 @@ func NewAuthController(
 	signUpUseCase *usecases.SignUpUseCase,
 	loginUseCase *usecases.LoginUseCase,
 	attachProfileUseCase *usecases.AttachProfileUseCase,
+	refreshTokensUseCase *usecases.RefreshTokensUseCase,
 	authMiddleware *middlewares.AuthorizationMiddleware,
 ) *AuthController {
 	return &AuthController{
 		signUpUseCase:        signUpUseCase,
 		loginUseCase:         loginUseCase,
 		attachProfileUseCase: attachProfileUseCase,
+		refreshTokensUseCase: refreshTokensUseCase,
 		authMiddleware:       authMiddleware,
 	}
 }
@@ -37,10 +40,33 @@ func NewAuthController(
 func (c *AuthController) Route(router fiber.Router) {
 	authRoutes := router.Group(AUTH_CONTROLLER_NAME)
 
-	authRoutes.Post("profile", c.authMiddleware.Handle, c.AttachProfile)
-	authRoutes.Get("token", c.authMiddleware.Handle, c.Token)
+	authRoutes.Post("profile", c.authMiddleware.AccessTokenHandler, c.AttachProfile)
+	authRoutes.Get("token", c.authMiddleware.AccessTokenHandler, c.Token)
+	authRoutes.Get("refresh-token", c.authMiddleware.RefreshTokenHandler, c.RefreshTokens)
+
 	authRoutes.Post("login", c.Login)
 	authRoutes.Post("sign-up", c.SignUp)
+}
+
+func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
+	profileId := ctx.Query("profile_id", "")
+
+	authId, err := middlewares.GetUserId(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	response, err := c.refreshTokensUseCase.Handle(usecases.RefreshTokensInput{
+		AuthId:    authId,
+		ProfileId: profileId,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
 }
 
 func (c *AuthController) Token(ctx *fiber.Ctx) error {
