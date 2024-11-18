@@ -1,6 +1,10 @@
 package contracts
 
 type (
+	CheckEmailFieldRequest struct {
+		Email string `validate:"required,email"`
+	}
+
 	RefreshTokensRequest struct {
 		ProfileId string `validate:"required,uuid"`
 	}

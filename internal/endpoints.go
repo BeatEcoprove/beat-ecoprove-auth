@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"strconv"
+
 	"github.com/BeatEcoprove/identityService/internal/middlewares"
 	"github.com/BeatEcoprove/identityService/internal/usecases"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
@@ -20,6 +22,7 @@ type AuthController struct {
 	refreshTokensUseCase  *usecases.RefreshTokensUseCase
 	forgotPasswordUseCase *usecases.ForgotPasswordUseCase
 	resetPasswdUseCase    *usecases.ResetPasswdUseCase
+	checkFieldUseCase     *usecases.CheckFieldUseCase
 
 	authMiddleware *middlewares.AuthorizationMiddleware
 }
@@ -31,6 +34,7 @@ func NewAuthController(
 	refreshTokensUseCase *usecases.RefreshTokensUseCase,
 	forgotPasswordUseCase *usecases.ForgotPasswordUseCase,
 	resetPasswdUseCase *usecases.ResetPasswdUseCase,
+	checkFieldUseCase *usecases.CheckFieldUseCase,
 	authMiddleware *middlewares.AuthorizationMiddleware,
 ) *AuthController {
 	return &AuthController{
@@ -40,6 +44,7 @@ func NewAuthController(
 		refreshTokensUseCase:  refreshTokensUseCase,
 		forgotPasswordUseCase: forgotPasswordUseCase,
 		resetPasswdUseCase:    resetPasswdUseCase,
+		checkFieldUseCase:     checkFieldUseCase,
 		authMiddleware:        authMiddleware,
 	}
 }
@@ -50,6 +55,8 @@ func (c *AuthController) Route(router fiber.Router) {
 	authRoutes.Post("profile", c.authMiddleware.AccessTokenHandler, c.AttachProfile)
 	authRoutes.Get("token", c.authMiddleware.AccessTokenHandler, c.Token)
 	authRoutes.Get("refresh-token", c.authMiddleware.RefreshTokenHandler, c.RefreshTokens)
+
+	authRoutes.Get("check-field", c.CheckField)
 
 	authRoutes.Post("reset-password", c.ResetPassword)
 	authRoutes.Post("forgot-password", c.ForgotPassword)
@@ -122,6 +129,20 @@ func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(response)
+}
+
+func (c *AuthController) CheckField(ctx *fiber.Ctx) error {
+	email := ctx.Query("email", "")
+
+	if err := shared.Validate(&contracts.CheckEmailFieldRequest{Email: email}); err != nil {
+		return fails.BAD_EMAIL
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(&contracts.GenericResponse{
+		Message: strconv.FormatBool(c.checkFieldUseCase.Handle(usecases.CheckFieldInput{
+			Email: email,
+		})),
+	})
 }
 
 func (c *AuthController) ResetPassword(ctx *fiber.Ctx) error {

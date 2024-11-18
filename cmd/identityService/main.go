@@ -95,6 +95,7 @@ func main() {
 	refreshTokensUseCase := usecases.NewRefreshTokensUseCase(authRepository, profileRepository, tokenService)
 	forgotPasswordUseCase := usecases.NewForgotPasswordUseCase(authRepository, pgService, emailService)
 	resetPasswdUseCase := usecases.NewResetPasswdUseCase(authRepository, pgService, emailService)
+	checkFieldUseCase := usecases.NewCheckFieldUseCase(authRepository)
 
 	// controllers
 	staticController := internal.NewStaticController()
@@ -105,6 +106,7 @@ func main() {
 		refreshTokensUseCase,
 		forgotPasswordUseCase,
 		resetPasswdUseCase,
+		checkFieldUseCase,
 		authMiddleware,
 	)
 

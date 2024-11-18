@@ -40,4 +40,10 @@ var (
 		"Invalid uuid",
 		"Please provide a valid uuid",
 	)
+
+	BAD_EMAIL = shared.NewConflitError(
+		"bad-email",
+		"Invalid email",
+		"Please provide a valid email",
+	)
 )
