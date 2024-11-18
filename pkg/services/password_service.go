@@ -25,6 +25,7 @@ func GenerateSalt(length int) (string, error) {
 func HashPassword(password string, salt string) (string, error) {
 	saltedPassword := password + salt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(saltedPassword), bcrypt.DefaultCost)
+
 	if err != nil {
 		return "", err
 	}

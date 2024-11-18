@@ -8,7 +8,11 @@ import (
 )
 
 type (
-	EmailTemplate string
+	EmailTemplate struct {
+		Id        string
+		Subject   string
+		Paramters map[string]string
+	}
 
 	IEmailService interface {
 		Send(input EmailInput) error
@@ -20,15 +24,9 @@ type (
 	}
 
 	EmailInput struct {
-		To         string `validate:"email"`
-		Subject    string
-		TemplateId EmailTemplate
+		To       string `validate:"email"`
+		Template *EmailTemplate
 	}
-)
-
-const (
-	Default        EmailTemplate = "default"
-	ForgotPassword EmailTemplate = "forgot-password"
 )
 
 var (
@@ -36,6 +34,16 @@ var (
 
 	ErrEmptyEmailList = errors.New("there isn't any email sent yet")
 )
+
+func NewForgotEmailTemplate(code string) *EmailTemplate {
+	return &EmailTemplate{
+		Id:      "forgot-password",
+		Subject: "Forgot Password",
+		Paramters: map[string]string{
+			"code": code,
+		},
+	}
+}
 
 func NewEmailService(rabbitmq interfaces.RabbitMq) *EmailService {
 	return &EmailService{
@@ -61,9 +69,9 @@ func convertToPush(input EmailInput) (*interfaces.EmailPayload, error) {
 	}
 
 	return &interfaces.EmailPayload{
-		To:         input.To,
-		Subject:    input.Subject,
-		TemplateId: string(input.TemplateId),
+		To:        input.To,
+		Subject:   input.Template.Subject,
+		Paramters: input.Template.Paramters,
 	}, nil
 }
 

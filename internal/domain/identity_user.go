@@ -42,7 +42,7 @@ func (u *IdentityUser) SetPassword(value string) error {
 		return err
 	}
 
-	password, err := services.HashPassword(u.Password, salt)
+	password, err := services.HashPassword(value, salt)
 
 	if err != nil {
 		return err

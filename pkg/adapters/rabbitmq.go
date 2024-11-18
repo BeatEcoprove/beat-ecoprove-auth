@@ -18,9 +18,9 @@ type (
 	}
 
 	EmailPayload struct {
-		To         string `json:"to"`
-		Subject    string `json:"subject"`
-		TemplateId string `json:"body"`
+		To        string            `json:"to"`
+		Subject   string            `json:"subject"`
+		Paramters map[string]string `json:"paramters"`
 	}
 
 	RabbitMq interface {

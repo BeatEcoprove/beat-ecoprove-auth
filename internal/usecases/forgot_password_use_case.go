@@ -47,9 +47,8 @@ func (fpu *ForgotPasswordUseCase) Handle(request ForgotPasswordInput) (*contract
 	}
 
 	fpu.emailService.Send(services.EmailInput{
-		To:         identityUser.Email,
-		Subject:    string(*genCode),
-		TemplateId: services.Default,
+		To:       identityUser.Email,
+		Template: services.NewForgotEmailTemplate(string(*genCode)),
 	})
 
 	return &contracts.GenericResponse{
