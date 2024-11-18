@@ -50,4 +50,10 @@ var (
 		"Profiles not found",
 		"No attached profiles were found",
 	)
+
+	CODE_NOT_VALID = shared.NewConflitError(
+		"code-not-valid",
+		"Code is not valid",
+		"Please provide a valid code, try again later",
+	)
 )

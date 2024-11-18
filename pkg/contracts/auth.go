@@ -1,6 +1,16 @@
 package contracts
 
 type (
+	ForgotPasswordRequest struct {
+		Email string `json:"email" validate:"required,email"`
+	}
+
+	ResetPasswordRequest struct {
+		Email    string `json:"email" validate:"required,email"`
+		Code     string `json:"code"`
+		Password string `json:"password" validate:"required,min=8"`
+	}
+
 	AttachProfileRequest struct {
 		ProfileGrantType int `json:"grant_type"`
 	}
@@ -34,5 +44,9 @@ type (
 		AccessTokenExpiration  int             `json:"access_token_exp"`
 		RefreshToken           string          `json:"refresh_token"`
 		RefreshTokenExpiration int             `json:"refresh_token_exp"`
+	}
+
+	GenericResponse struct {
+		Message string `json:"message"`
 	}
 )

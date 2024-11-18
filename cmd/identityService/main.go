@@ -82,6 +82,7 @@ func main() {
 
 	// services
 	tokenService := services.NewTokenService(redis)
+	pgService := services.NewPGService(redis)
 	emailService := services.NewEmailService(rabbitMQ)
 
 	// midlewares
@@ -92,6 +93,8 @@ func main() {
 	loginUseCase := usecases.NewLoginUseCase(authRepository, profileRepository, tokenService)
 	attachProfileUseCase := usecases.NewAttachProfileUseCase(authRepository, profileRepository)
 	refreshTokensUseCase := usecases.NewRefreshTokensUseCase(authRepository, profileRepository, tokenService)
+	forgotPasswordUseCase := usecases.NewForgotPasswordUseCase(authRepository, pgService, emailService)
+	resetPasswdUseCase := usecases.NewResetPasswdUseCase(authRepository, pgService, emailService)
 
 	// controllers
 	staticController := internal.NewStaticController()
@@ -100,6 +103,8 @@ func main() {
 		loginUseCase,
 		attachProfileUseCase,
 		refreshTokensUseCase,
+		forgotPasswordUseCase,
+		resetPasswdUseCase,
 		authMiddleware,
 	)
 

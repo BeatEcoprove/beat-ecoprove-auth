@@ -3,6 +3,8 @@ package services
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
+	"fmt"
 	"io"
 	"math/big"
 
@@ -58,4 +60,28 @@ func GeneratePassword(minPasswordLength, maxPasswordLength int64) (string, error
 	}
 
 	return string(password), nil
+}
+
+func GenerateCode() (string, error) {
+	var part2Str string
+	var alphanumericCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var part1 = make([]byte, 4)
+
+	if _, err := rand.Read(part1); err != nil {
+		return "", err
+	}
+
+	part1Hex := hex.EncodeToString(part1)
+
+	part2 := make([]byte, 3)
+
+	if _, err := rand.Read(part2); err != nil {
+		return "", err
+	}
+
+	for _, b := range part2 {
+		part2Str += string(alphanumericCharset[b%byte(len(alphanumericCharset))])
+	}
+
+	return fmt.Sprintf("%s-%s", part1Hex[:4], part2Str), nil
 }

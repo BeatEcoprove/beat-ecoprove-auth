@@ -35,9 +35,7 @@ func (b *IdentityUser) TableName() string {
 	return "auths"
 }
 
-func (u *IdentityUser) BeforeCreate(tx *gorm.DB) error {
-	u.GetId()
-
+func (u *IdentityUser) SetPassword(value string) error {
 	salt, err := services.GenerateSalt(services.SALT_COST)
 
 	if err != nil {
@@ -52,6 +50,13 @@ func (u *IdentityUser) BeforeCreate(tx *gorm.DB) error {
 
 	u.Salt = salt
 	u.Password = password
+	return nil
+}
+
+func (u *IdentityUser) BeforeCreate(tx *gorm.DB) error {
+	u.GetId()
+
+	u.SetPassword(u.Password)
 	u.DeletedAt = nil
 	return nil
 }

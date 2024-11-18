@@ -13,10 +13,12 @@ const (
 )
 
 type AuthController struct {
-	signUpUseCase        *usecases.SignUpUseCase
-	loginUseCase         *usecases.LoginUseCase
-	attachProfileUseCase *usecases.AttachProfileUseCase
-	refreshTokensUseCase *usecases.RefreshTokensUseCase
+	signUpUseCase         *usecases.SignUpUseCase
+	loginUseCase          *usecases.LoginUseCase
+	attachProfileUseCase  *usecases.AttachProfileUseCase
+	refreshTokensUseCase  *usecases.RefreshTokensUseCase
+	forgotPasswordUseCase *usecases.ForgotPasswordUseCase
+	resetPasswdUseCase    *usecases.ResetPasswdUseCase
 
 	authMiddleware *middlewares.AuthorizationMiddleware
 }
@@ -26,14 +28,18 @@ func NewAuthController(
 	loginUseCase *usecases.LoginUseCase,
 	attachProfileUseCase *usecases.AttachProfileUseCase,
 	refreshTokensUseCase *usecases.RefreshTokensUseCase,
+	forgotPasswordUseCase *usecases.ForgotPasswordUseCase,
+	resetPasswdUseCase *usecases.ResetPasswdUseCase,
 	authMiddleware *middlewares.AuthorizationMiddleware,
 ) *AuthController {
 	return &AuthController{
-		signUpUseCase:        signUpUseCase,
-		loginUseCase:         loginUseCase,
-		attachProfileUseCase: attachProfileUseCase,
-		refreshTokensUseCase: refreshTokensUseCase,
-		authMiddleware:       authMiddleware,
+		signUpUseCase:         signUpUseCase,
+		loginUseCase:          loginUseCase,
+		attachProfileUseCase:  attachProfileUseCase,
+		refreshTokensUseCase:  refreshTokensUseCase,
+		forgotPasswordUseCase: forgotPasswordUseCase,
+		resetPasswdUseCase:    resetPasswdUseCase,
+		authMiddleware:        authMiddleware,
 	}
 }
 
@@ -44,45 +50,11 @@ func (c *AuthController) Route(router fiber.Router) {
 	authRoutes.Get("token", c.authMiddleware.AccessTokenHandler, c.Token)
 	authRoutes.Get("refresh-token", c.authMiddleware.RefreshTokenHandler, c.RefreshTokens)
 
+	authRoutes.Post("reset-password", c.ResetPassword)
+	authRoutes.Post("forgot-password", c.ForgotPassword)
+
 	authRoutes.Post("login", c.Login)
 	authRoutes.Post("sign-up", c.SignUp)
-}
-
-func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
-	profileId := ctx.Query("profile_id", "")
-
-	authId, err := middlewares.GetUserId(ctx)
-
-	if err != nil {
-		return err
-	}
-
-	response, err := c.refreshTokensUseCase.Handle(usecases.RefreshTokensInput{
-		AuthId:    authId,
-		ProfileId: profileId,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return ctx.Status(fiber.StatusOK).JSON(response)
-}
-
-func (c *AuthController) Token(ctx *fiber.Ctx) error {
-	_, claims, err := middlewares.GetClaims(ctx)
-
-	if err != nil {
-		return err
-	}
-
-	return ctx.Status(fiber.StatusOK).JSON(&contracts.AccountResponse{
-		UserId:     claims.Subject,
-		Email:      claims.Email,
-		ProfileId:  claims.ProfileId,
-		ProfileIds: claims.ProfileIds,
-		Role:       claims.Role,
-	})
 }
 
 func (c *AuthController) AttachProfile(ctx *fiber.Ctx) error {
@@ -108,6 +80,81 @@ func (c *AuthController) AttachProfile(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(response)
+}
+
+func (c *AuthController) Token(ctx *fiber.Ctx) error {
+	_, claims, err := middlewares.GetClaims(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(&contracts.AccountResponse{
+		UserId:     claims.Subject,
+		Email:      claims.Email,
+		ProfileId:  claims.ProfileId,
+		ProfileIds: claims.ProfileIds,
+		Role:       claims.Role,
+	})
+}
+
+func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
+	profileId := ctx.Query("profile_id", "")
+
+	authId, err := middlewares.GetUserId(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	response, err := c.refreshTokensUseCase.Handle(usecases.RefreshTokensInput{
+		AuthId:    authId,
+		ProfileId: profileId,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
+}
+
+func (c *AuthController) ResetPassword(ctx *fiber.Ctx) error {
+	var resetPasswordRequest contracts.ResetPasswordRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &resetPasswordRequest); err != nil {
+		return err
+	}
+
+	response, err := c.resetPasswdUseCase.Handle(usecases.ResetPasswdInput{
+		Email:    resetPasswordRequest.Email,
+		Code:     resetPasswordRequest.Code,
+		Password: resetPasswordRequest.Password,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
+}
+
+func (c *AuthController) ForgotPassword(ctx *fiber.Ctx) error {
+	var forgotPasswordRequest contracts.ForgotPasswordRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &forgotPasswordRequest); err != nil {
+		return err
+	}
+
+	response, err := c.forgotPasswordUseCase.Handle(usecases.ForgotPasswordInput{
+		Email: forgotPasswordRequest.Email,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
 }
 
 func (c *AuthController) Login(ctx *fiber.Ctx) error {

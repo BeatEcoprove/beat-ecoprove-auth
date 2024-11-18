@@ -27,7 +27,8 @@ type (
 )
 
 const (
-	Default EmailTemplate = "default"
+	Default        EmailTemplate = "default"
+	ForgotPassword EmailTemplate = "forgot-password"
 )
 
 var (
