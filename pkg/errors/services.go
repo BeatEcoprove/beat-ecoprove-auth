@@ -34,4 +34,10 @@ var (
 		"Password Validation",
 		"Password must contain at least one non-capital letter",
 	)
+
+	BAD_UUID = shared.NewConflitError(
+		"bad-uuid",
+		"Invalid uuid",
+		"Please provide a valid uuid",
+	)
 )

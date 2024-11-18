@@ -4,6 +4,7 @@ import (
 	"github.com/BeatEcoprove/identityService/internal/middlewares"
 	"github.com/BeatEcoprove/identityService/internal/usecases"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
+	fails "github.com/BeatEcoprove/identityService/pkg/errors"
 	"github.com/BeatEcoprove/identityService/pkg/shared"
 	"github.com/gofiber/fiber/v2"
 )
@@ -105,6 +106,10 @@ func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
 
 	if err != nil {
 		return err
+	}
+
+	if err := shared.Validate(&contracts.RefreshTokensRequest{ProfileId: profileId}); err != nil {
+		return fails.BAD_UUID
 	}
 
 	response, err := c.refreshTokensUseCase.Handle(usecases.RefreshTokensInput{

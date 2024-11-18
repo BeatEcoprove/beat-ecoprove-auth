@@ -1,6 +1,10 @@
 package contracts
 
 type (
+	RefreshTokensRequest struct {
+		ProfileId string `validate:"required,uuid"`
+	}
+
 	ForgotPasswordRequest struct {
 		Email string `json:"email" validate:"required,email"`
 	}
