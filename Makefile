@@ -15,9 +15,17 @@ run: help
 .PHONY: help
 help:
 	@echo "Makefile for managing Project tools"
-	@echo "Available targets:"
+	@echo 
+	@echo "Tools:"
+	@echo "  setup				- Download and install all necessary tools"
 	@echo "  install-goose			- Download and install goose"
+	@echo "  install-swag			- Download and install swag"
+	@echo 
+	@echo "Actions:"
 	@echo "  test				- Run tests"
+	@echo "  swagger			- Generate Swagger configuration files"
+	@echo 
+	@echo "Database:"
 	@echo "  rollback			- Rollback the last migration"
 	@echo "  rebuild			- Rebuild migrations"
 	@echo "  reset				- Rollback all the migrations"
@@ -31,10 +39,21 @@ install-goose:
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 	@echo "To use the tool please add $GOPATH/bin to the path"
 
+.PHONY: install-swag
+install-swag:
+	@echo "Downloading and installing swag"
+	go install github.com/swaggo/swag/cmd/swag@latest
+	@echo "To use the tool please add $GOPATH/bin to the path"
+
 .PHONY: test
 test:
 	@echo "Running tests..."
 	@go test -v ./...
+
+.PHONY: swagger
+swagger:
+	@echo "Generating..."
+	@swag init -g cmd/identityService/main.go -o docs/
 
 .PHONY: rollback
 rollback:

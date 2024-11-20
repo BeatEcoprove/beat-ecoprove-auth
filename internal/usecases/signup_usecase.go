@@ -41,8 +41,6 @@ func NewSignUpUseCase(
 }
 
 func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, error) {
-	// Setps to create an user
-	/// 1. Exists already this user registered?
 	if ok := as.authRepo.ExistsUserWithEmail(input.Email); ok {
 		return nil, fails.USER_ALREADY_EXISTS
 	}
@@ -57,7 +55,6 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, fails.ROLE_NOT_FOUND
 	}
 
-	/// 2. If not then register the user
 	identityUser := domain.NewIdentityUser(
 		input.Email,
 		input.Password,
@@ -74,15 +71,12 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, fails.InternalServerError()
 	}
 
-	/// 3. Generate an ProfileID -> Which will be the Main Profile
-	//// Generate the profile info and the type
 	profile := domain.NewProfile(identityUser.ID, domain.Main)
 
 	if err := signUpTransaction.Create(profile); err != nil {
 		return nil, fails.InternalServerError()
 	}
 
-	/// 4. Generate the authorization tokens -> Generate Tokens
 	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
 		UserId:     identityUser.ID,
 		Email:      identityUser.Email,

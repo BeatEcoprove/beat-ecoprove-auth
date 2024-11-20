@@ -1,0 +1,405 @@
+definitions:
+  contracts.AccountResponse:
+    properties:
+      email:
+        type: string
+      profile_id:
+        type: string
+      profile_ids:
+        items:
+          type: string
+        type: array
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
+  contracts.AttachProfileRequest:
+    properties:
+      grant_type:
+        type: integer
+    type: object
+  contracts.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_exp:
+        type: integer
+      details:
+        $ref: '#/definitions/contracts.AccountResponse'
+      refresh_token:
+        type: string
+      refresh_token_exp:
+        type: integer
+    type: object
+  contracts.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  contracts.GenericResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  contracts.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  contracts.ProfileResponse:
+    properties:
+      profile_id:
+        type: string
+    type: object
+  contracts.ResetPasswordRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  contracts.SignUpRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      role:
+        type: integer
+    required:
+    - email
+    - password
+    type: object
+  shared.ProblemDetails:
+    properties:
+      detail:
+        type: string
+      extensions:
+        additionalProperties: true
+        type: object
+      instance:
+        type: string
+      status:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  shared.ProblemDetailsExtendend:
+    properties:
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      extensions:
+        additionalProperties: true
+        type: object
+      instance:
+        type: string
+      status:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+info:
+  contact:
+    email: fiber@swagger.io
+    name: API Support
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+paths:
+  /check-field:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: user email
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Value
+          schema:
+            $ref: '#/definitions/contracts.GenericResponse'
+        "409":
+          description: Invalid Email
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      summary: Checks if the email is not already registered on the platform.
+      tags:
+      - Validation
+  /forgot-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ForgotPassword Payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/contracts.GenericResponse'
+        "401":
+          description: Authentication Failed
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "403":
+          description: Don't have access to this resource
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      summary: It will be sent an email containing an code that will be used to provide
+        a new password.
+      tags:
+      - Authentication
+  /login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: LogIn Payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get Access Credentials
+          schema:
+            $ref: '#/definitions/contracts.AuthResponse'
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/shared.ProblemDetailsExtendend'
+        "401":
+          description: Authentication Failed
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      summary: Gives the `access token` and `refresh token` that is needed to interact
+        with the platform, along with all user's profiles ids.
+      tags:
+      - Authentication
+  /profile:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: AttachProfile Payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.AttachProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Attached Profile Id
+          schema:
+            $ref: '#/definitions/contracts.ProfileResponse'
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/shared.ProblemDetailsExtendend'
+        "404":
+          description: Grant Type not found
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Attach a profile to the `created account`.
+      tags:
+      - Profiles
+  /refresh-token:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: switch access to (profile_id) or if not provided default to main
+          profile
+        in: query
+        name: profile_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access Credentials
+          schema:
+            $ref: '#/definitions/contracts.AuthResponse'
+        "401":
+          description: Authentication Failed
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "403":
+          description: Don't have access to this resource
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: It receives the `refresh token` and validates it. Then, creates a new
+        refresh token and access token revoking the other ones.
+      tags:
+      - Access Credentials
+  /reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ResetPassword Payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/contracts.GenericResponse'
+        "401":
+          description: Authentication Failed
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "403":
+          description: Don't have access to this resource
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      summary: After reviving an email with the code, this endpoint will allow the
+        user to reset his password.
+      tags:
+      - Authentication
+  /sign-up:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sign Up Payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Account Created
+          schema:
+            $ref: '#/definitions/contracts.AuthResponse'
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/shared.ProblemDetailsExtendend'
+        "404":
+          description: Role not found
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "409":
+          description: Invalid Password or Email already used
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      summary: Register an access key to obtain a `profileId`, which allows you to
+        create a profile on the platform.
+      tags:
+      - Authentication
+  /token:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token Payload
+          schema:
+            $ref: '#/definitions/contracts.AccountResponse'
+        "401":
+          description: Authentication Failed
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "403":
+          description: Don't have access to this resource
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+        "500":
+          description: Server failed to provide an valid response
+          schema:
+            $ref: '#/definitions/shared.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Validate the provided `token` and returns success or failed weather
+        the token was signed by the `public key`.
+      tags:
+      - Access Credentials
+securityDefinitions:
+  Bearer:
+    description: 'Enter the token with the `Bearer: ` prefix, e.g. "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ5MjRhNmEx..."'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

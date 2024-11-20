@@ -47,6 +47,17 @@ func generateJWKS() error {
 	return nil
 }
 
+//	@termsOfService				http://swagger.io/terms/
+//	@contact.name				API Support
+//	@contact.email				fiber@swagger.io
+//	@license.name				Apache 2.0
+//	@license.url				http://www.apache.org/licenses/LICENSE-2.0.html
+//	@securityDefinitions.apikey	Bearer
+//	@in							header
+//	@name						Authorization
+//	@description Enter the token with the `Bearer: ` prefix, e.g. "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ5MjRhNmEx..."
+//
+// @ Schemas http
 func main() {
 	config.LoadEnv(config.DotEnv)
 	env := config.GetCofig()
@@ -115,5 +126,6 @@ func main() {
 		authController,
 	})
 
+	adapters.UseSwagger(app, env.BEAT_IDENTITY_SERVER)
 	app.Serve(env.BEAT_IDENTITY_SERVER)
 }
