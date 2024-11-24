@@ -21,6 +21,8 @@ type (
 
 	EmailService struct {
 		rabbitMq interfaces.RabbitMq
+
+		sentEmails []EmailInput
 	}
 
 	EmailInput struct {
@@ -30,8 +32,6 @@ type (
 )
 
 var (
-	sentEmails = make([]EmailInput, 0)
-
 	ErrEmptyEmailList = errors.New("there isn't any email sent yet")
 )
 
@@ -52,13 +52,13 @@ func NewEmailService(rabbitmq interfaces.RabbitMq) *EmailService {
 }
 
 func (es *EmailService) Last() (*EmailInput, error) {
-	emailsLen := len(sentEmails)
+	emailsLen := len(es.sentEmails)
 
 	if emailsLen == 0 {
 		return nil, ErrEmptyEmailList
 	}
 
-	return &sentEmails[emailsLen-1], nil
+	return &es.sentEmails[emailsLen-1], nil
 }
 
 func convertToPush(input EmailInput) (*interfaces.EmailPayload, error) {
@@ -86,6 +86,6 @@ func (es *EmailService) Send(input EmailInput) error {
 		return err
 	}
 
-	sentEmails = append(sentEmails, input)
+	es.sentEmails = append(es.sentEmails, input)
 	return nil
 }

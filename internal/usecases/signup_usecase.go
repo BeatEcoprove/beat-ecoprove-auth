@@ -89,7 +89,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, fails.InternalServerError()
 	}
 
-	if err := signUpTransaction.Commit().Error; err != nil {
+	if err := signUpTransaction.Commit(); err != nil {
 		return nil, fails.InternalServerError()
 	}
 

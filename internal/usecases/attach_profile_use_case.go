@@ -73,7 +73,7 @@ func (apu *AttachProfileUseCase) Handle(request AttachProfileInput) (*contracts.
 		return nil, fails.InternalServerError()
 	}
 
-	if err := createProfileTransaction.Commit().Error; err != nil {
+	if err := createProfileTransaction.Commit(); err != nil {
 		return nil, fails.InternalServerError()
 	}
 

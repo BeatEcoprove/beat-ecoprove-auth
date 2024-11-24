@@ -2,6 +2,8 @@ package config
 
 import "github.com/spf13/viper"
 
+const DotEnv = ".env"
+
 var config *Config
 
 type Config struct {

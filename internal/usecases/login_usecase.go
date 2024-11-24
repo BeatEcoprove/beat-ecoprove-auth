@@ -36,8 +36,6 @@ func NewLoginUseCase(
 }
 
 func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error) {
-	// Setps to create an user
-	/// 1. Exists already this user registered?
 	if ok := as.authRepo.ExistsUserWithEmail(input.Email); !ok {
 		return nil, fails.USER_AUTH_FAILED
 	}
@@ -56,7 +54,6 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 		return nil, fails.USER_AUTH_FAILED
 	}
 
-	/// Get the correct profile
 	attachedProfiles, err := as.profileRepo.GetAttachProfiles(identityUser.ID)
 
 	if err != nil {
@@ -69,10 +66,8 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 		return nil, fails.USER_AUTH_FAILED
 	}
 
-	// filter profiles
 	mainProfile, subProfiles := domain.FilterProfiles(attachedProfiles)
 
-	/// 4. Generate the authorization tokens -> Generate Tokens
 	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
 		UserId:     identityUser.ID,
 		Email:      identityUser.Email,

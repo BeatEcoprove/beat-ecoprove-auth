@@ -50,7 +50,7 @@ func (rpu *ResetPasswdUseCase) Handle(request ResetPasswdInput) (*contracts.Gene
 	}
 
 	if err := identityUser.SetPassword(request.Password); err != nil {
-		return nil, err
+		return nil, fails.InternalServerError()
 	}
 
 	if err := rpu.authRepo.Update(identityUser); err != nil {

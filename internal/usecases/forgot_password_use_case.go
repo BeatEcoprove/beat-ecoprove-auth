@@ -10,8 +10,7 @@ import (
 type (
 	// input
 	ForgotPasswordInput struct {
-		Email    string
-		Password string
+		Email string `faker:"email"`
 	}
 
 	ForgotPasswordUseCase struct {

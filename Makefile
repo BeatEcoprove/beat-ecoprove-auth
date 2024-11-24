@@ -23,6 +23,7 @@ help:
 	@echo 
 	@echo "Actions:"
 	@echo "  test				- Run tests"
+	@echo "  coverage			- Generate Coverage Report"
 	@echo "  swagger			- Generate Swagger configuration files"
 	@echo 
 	@echo "Database:"
@@ -32,6 +33,9 @@ help:
 	@echo "  status			- Show the current migration status"
 	@echo "  migrate			- Apply all pending migrations"
 	@echo "  create-migration		- Create a new migration with a user-provided name"
+
+.PHONY: setup
+setup: install-goose install-swag
 
 .PHONY: install-goose
 install-goose:
@@ -48,7 +52,13 @@ install-swag:
 .PHONY: test
 test:
 	@echo "Running tests..."
-	@go test -v ./...
+	@go test -cover ./...
+
+.PHONY: coverage
+coverage:
+	@echo "Running tests..."
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out
 
 .PHONY: swagger
 swagger:
