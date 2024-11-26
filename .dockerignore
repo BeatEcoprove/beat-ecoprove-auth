@@ -1,0 +1,6 @@
+.vscode
+www
+.env*
+.gitignore
+Makefile
+todo.md

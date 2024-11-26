@@ -12,7 +12,8 @@ www
 todo.md
 
 # Environment Variables
-.env
+.env*
+!.env.example
 
 .vscode
 # User-specific stuff
@@ -56,6 +57,7 @@ todo.md
 
 # CMake
 cmake-build-*/
+bin/*
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
