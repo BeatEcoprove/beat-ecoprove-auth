@@ -1,4 +1,18 @@
 services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    ports:
+      - ${BEAT_IDENTITY_SERVER}:${BEAT_IDENTITY_SERVER}
+    env_file:
+      - .env.prod
+    networks:
+      - dev-net
+    depends_on:
+      identity-db:
+        condition: service_healthy
+
   identity-db:
     build:
       context: .

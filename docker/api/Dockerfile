@@ -28,14 +28,13 @@ RUN adduser \
   --uid "${UID}" \
   appuser
 
-RUN mkdir -p /src/www && chown -R appuser:appuser /src && chmod -R 755 /src
+RUN mkdir -p /app/www && chown -R appuser:appuser /app && chmod -R 755 /app
 
 USER appuser
 
-COPY --from=build /bin/server /src
-COPY --from=build /src/migrations /src/migrations
+COPY --from=build /bin/server /app
 
-WORKDIR /src
+WORKDIR /app
 
 EXPOSE 3000
 
