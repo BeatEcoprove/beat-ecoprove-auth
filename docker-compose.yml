@@ -6,11 +6,15 @@ services:
     ports:
       - ${BEAT_IDENTITY_SERVER}:${BEAT_IDENTITY_SERVER}
     env_file:
-      - .env.prod
+      - .env
     networks:
       - dev-net
     depends_on:
       identity-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      broker:
         condition: service_healthy
 
   identity-db:
