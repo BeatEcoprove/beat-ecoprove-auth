@@ -1,0 +1,9 @@
+POST /auth/sign-up HTTP/1.1
+Host: {{BASE_URL}}
+Content-Type: application/json
+
+{
+  "email": "diogoassuncao@ipvc.pt",
+  "password": "Password1",
+  "role": 0
+}

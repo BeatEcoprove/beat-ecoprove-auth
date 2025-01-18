@@ -1,0 +1,5 @@
+@email = diogoassuncao@ipvc.pt
+
+GET /auth/check-field?email={{email}} HTTP/1.1
+Host: {{BASE_URL}}
+Content-Type: application/json
