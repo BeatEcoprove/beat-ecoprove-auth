@@ -11,6 +11,8 @@ import (
 )
 
 type (
+	TokenType string
+
 	JwtToken struct {
 		Token    string
 		ExpireAt int
@@ -23,6 +25,7 @@ type (
 		ProfileIds []string
 		Role       string
 		Duration   time.Time
+		Type       TokenType
 	}
 
 	AuthClaims struct {
@@ -32,6 +35,11 @@ type (
 		ProfileId  string   `json:"profileId,omitempty"`
 		ProfileIds []string `json:"profileIds"`
 	}
+)
+
+const (
+	Access  TokenType = "access"
+	Refresh TokenType = "refresh"
 )
 
 var (
@@ -82,6 +90,11 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token.Header["kid"] = generateKid()
+	token.Header["typ"] = string(payload.Type)
+
+	if token.Header["typ"] == "" {
+		token.Header["typ"] = Access
+	}
 
 	jwtToken, err := token.SignedString(privKey)
 
