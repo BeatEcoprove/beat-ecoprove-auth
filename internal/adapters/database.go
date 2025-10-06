@@ -44,7 +44,7 @@ func newDatabaseGorm(connectionString string) (*GormDatabase, error) {
 }
 
 func getConnectionString() string {
-	env := config.GetCofig()
+	env := config.GetConfig()
 
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",

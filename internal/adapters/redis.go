@@ -26,7 +26,7 @@ func GetRedis() *RedisConnection {
 }
 
 func newRedisConnection() *RedisConnection {
-	config := config.GetCofig()
+	config := config.GetConfig()
 
 	return &RedisConnection{
 		client: redis.NewClient(&redis.Options{

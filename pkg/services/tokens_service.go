@@ -87,7 +87,7 @@ func (ts *TokenService) ValidateToken(authId, token string, key TokenKey) error 
 }
 
 func (ts *TokenService) CreateAuthenticationTokens(payload TokenPayload) (*JwtToken, *JwtToken, error) {
-	env := config.GetCofig()
+	env := config.GetConfig()
 
 	accessTokenExp := time.Duration(env.JWT_ACCESS_EXPIRED) * time.Minute           // per minute
 	refreshTokenExp := time.Duration(env.JWT_REFRESH_EXPIRED) * time.Hour * 24 * 30 // per month

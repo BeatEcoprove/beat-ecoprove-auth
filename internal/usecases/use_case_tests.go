@@ -57,7 +57,7 @@ var (
 	PGService    services.IPGService
 )
 
-func generateFakeData(input interface{}) {
+func generateFakeData(input any) {
 	if err := faker.FakeData(input); err != nil {
 		panic(err)
 	}

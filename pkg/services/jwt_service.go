@@ -71,7 +71,7 @@ func LoadKeys(publicKey, privateKey []byte) error {
 }
 
 func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
-	env := config.GetCofig()
+	env := config.GetConfig()
 
 	claims := AuthClaims{
 		Email:      payload.Email,

@@ -1,18 +1,14 @@
 package main
 
 import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/BeatEcoprove/identityService/config"
 	"github.com/BeatEcoprove/identityService/internal"
-	"github.com/BeatEcoprove/identityService/internal/adapters"
-	"github.com/BeatEcoprove/identityService/internal/middlewares"
-	"github.com/BeatEcoprove/identityService/internal/repositories"
-	"github.com/BeatEcoprove/identityService/internal/usecases"
 	"github.com/BeatEcoprove/identityService/pkg/services"
-	"github.com/BeatEcoprove/identityService/pkg/shared"
-)
-
-const (
-	API_VERSION = "2"
 )
 
 func generatePki() error {
@@ -47,6 +43,26 @@ func generateJWKS() error {
 	return nil
 }
 
+func initPKIandJWKS() error {
+	if err := generatePki(); err != nil {
+		return err
+	}
+
+	if err := generateJWKS(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func exitGracefully() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	<-stop
+	log.Println("🧹 Shutting down gracefully...")
+}
+
 //	@termsOfService				http://swagger.io/terms/
 //	@contact.name				API Support
 //	@contact.email				fiber@swagger.io
@@ -60,72 +76,24 @@ func generateJWKS() error {
 // @ Schemas http
 func main() {
 	config.LoadEnv(config.DotEnv)
-	env := config.GetCofig()
 
-	if err := generatePki(); err != nil {
-		panic(err)
-	}
-
-	if err := generateJWKS(); err != nil {
-		panic(err)
-	}
-
-	// adapters
-	db := adapters.GetDatabase()
-	defer db.Close()
-
-	redis := adapters.GetRedis()
-	defer redis.Close()
-
-	rabbitMQ, err := adapters.GetRabbitMqConnection()
+	err := initPKIandJWKS()
 
 	if err != nil {
 		panic(err)
 	}
 
-	defer rabbitMQ.Close()
+	app, err := internal.NewApp()
 
-	app := adapters.NewHttpServer(API_VERSION)
+	if err != nil {
+		panic(err)
+	}
 
-	// repositories
-	authRepository := repositories.NewAuthRepository(db)
-	profileRepository := repositories.NewProfileRepository(db)
+	app.ApplyConsumer()
+	app.ApplyHttpServer()
 
-	// services
-	tokenService := services.NewTokenService(redis)
-	pgService := services.NewPGService(redis)
-	emailService := services.NewEmailService(rabbitMQ)
+	app.Serve()
+	defer app.Close()
 
-	// midlewares
-	authMiddleware := middlewares.NewAuthorizationMiddleware(authRepository, tokenService)
-
-	// use cases
-	signUpUseCase := usecases.NewSignUpUseCase(authRepository, profileRepository, tokenService, emailService)
-	loginUseCase := usecases.NewLoginUseCase(authRepository, profileRepository, tokenService)
-	attachProfileUseCase := usecases.NewAttachProfileUseCase(authRepository, profileRepository)
-	refreshTokensUseCase := usecases.NewRefreshTokensUseCase(authRepository, profileRepository, tokenService)
-	forgotPasswordUseCase := usecases.NewForgotPasswordUseCase(authRepository, pgService, emailService)
-	resetPasswdUseCase := usecases.NewResetPasswdUseCase(authRepository, pgService, emailService)
-	checkFieldUseCase := usecases.NewCheckFieldUseCase(authRepository)
-
-	// controllers
-	staticController := internal.NewStaticController()
-	authController := internal.NewAuthController(
-		signUpUseCase,
-		loginUseCase,
-		attachProfileUseCase,
-		refreshTokensUseCase,
-		forgotPasswordUseCase,
-		resetPasswdUseCase,
-		checkFieldUseCase,
-		authMiddleware,
-	)
-
-	app.AddStaticController(staticController)
-	app.AddControllers([]shared.Controller{
-		authController,
-	})
-
-	adapters.UseSwagger(app, env.BEAT_IDENTITY_SERVER)
-	app.Serve(env.BEAT_IDENTITY_SERVER)
+	exitGracefully()
 }

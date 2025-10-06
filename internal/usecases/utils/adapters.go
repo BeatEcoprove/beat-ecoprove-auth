@@ -22,7 +22,7 @@ func (r *MockRedis) GetValue(key adapters.RedisKey) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (r *MockRedis) SetValue(key adapters.RedisKey, value interface{}, expiration time.Duration) error {
+func (r *MockRedis) SetValue(key adapters.RedisKey, value any, expiration time.Duration) error {
 	args := r.Called(key, value, expiration)
 	return args.Error(0)
 }
@@ -37,7 +37,7 @@ func (r *MockRedis) Close() error {
 	return args.Error(0)
 }
 
-func (rc *MockRabbitMq) PublishMessage(payload *adapters.PushMessage) error {
+func (rc *MockRabbitMq) Publish(payload adapters.BrokerPayload, topic adapters.BrokerScope) error {
 	args := rc.Called(payload)
 	return args.Error(0)
 }

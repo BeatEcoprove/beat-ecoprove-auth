@@ -63,7 +63,7 @@ func Test_SignUp_UseCase(t *testing.T) {
 		response, err := sut.Handle(SignUpInput(input))
 
 		// Assert
-		role, _ := domain.GetRole(domain.Role(input.Role))
+		role, _ := domain.GetRole(domain.AuthRole(input.Role))
 
 		assert.Nil(t, err)
 		assert.NotEmpty(t, response.AccessToken)

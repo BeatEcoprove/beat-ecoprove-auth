@@ -1,37 +1,37 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: docker/api/Dockerfile
-    ports:
-      - ${BEAT_IDENTITY_SERVER}:${BEAT_IDENTITY_SERVER}
-    env_file:
-      - .env
-    networks:
-      - dev-net
-    depends_on:
-      identity-db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      broker:
-        condition: service_healthy
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/api/Dockerfile
+  #   ports:
+  #     - ${BEAT_IDENTITY_SERVER}:${BEAT_IDENTITY_SERVER}
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - dev-net
+  #   depends_on:
+  #     identity-db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_started
+  #     broker:
+  #       condition: service_healthy
 
-  identity-db:
-    build:
-      context: .
-      dockerfile: docker/postgresql/Dockerfile
-    ports:
-      - ${POSTGRES_PORT}:5432
-    env_file:
-      - .env
-    networks:
-      - dev-net
-    healthcheck:
-      test: [ "CMD", "pg_isready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # identity-db:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/postgresql/Dockerfile
+  #   ports:
+  #     - ${POSTGRES_PORT}:5432
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - dev-net
+  #   healthcheck:
+  #     test: [ "CMD", "pg_isready" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   redis:
     container_name: redis

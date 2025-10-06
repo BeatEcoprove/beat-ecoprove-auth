@@ -25,6 +25,9 @@ type Config struct {
 	REDIS_PORT string
 	REDIS_DB   int
 
+	KAFKA_HOST string
+	KAFKA_PORT int
+
 	RABBIT_MQ_HOST           string
 	RABBIT_MQ_PORT           string
 	RABBITMQ_DEFAULT_USER    string
@@ -66,6 +69,9 @@ func LoadEnv(path string) {
 		REDIS_PORT: viper.GetString("REDIS_PORT"),
 		REDIS_DB:   viper.GetInt("REDIS_DB"),
 
+		KAFKA_HOST: viper.GetString("KAFKA_HOST"),
+		KAFKA_PORT: viper.GetInt("KAFKA_PORT"),
+
 		RABBIT_MQ_HOST:           viper.GetString("RABBIT_MQ_HOST"),
 		RABBIT_MQ_PORT:           viper.GetString("RABBIT_MQ_PORT"),
 		RABBITMQ_DEFAULT_USER:    viper.GetString("RABBITMQ_DEFAULT_USER"),
@@ -78,6 +84,6 @@ func LoadEnv(path string) {
 	}
 }
 
-func GetCofig() *Config {
+func GetConfig() *Config {
 	return config
 }

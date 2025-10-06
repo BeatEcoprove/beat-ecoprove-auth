@@ -2,9 +2,13 @@ package services
 
 import (
 	"errors"
+	"time"
 
+	"github.com/BeatEcoprove/identityService/internal/domain/events"
+	"github.com/BeatEcoprove/identityService/pkg/adapters"
 	interfaces "github.com/BeatEcoprove/identityService/pkg/adapters"
 	"github.com/BeatEcoprove/identityService/pkg/shared"
+	"github.com/google/uuid"
 )
 
 type (
@@ -20,8 +24,7 @@ type (
 	}
 
 	EmailService struct {
-		rabbitMq interfaces.RabbitMq
-
+		broker     interfaces.Broker
 		sentEmails []EmailInput
 	}
 
@@ -35,6 +38,14 @@ var (
 	ErrEmptyEmailList = errors.New("there isn't any email sent yet")
 )
 
+func NewConfirmEmailTemplate() *EmailTemplate {
+	return &EmailTemplate{
+		Id:        "confirm-account",
+		Subject:   "Confirm Account",
+		Paramters: make(map[string]string),
+	}
+}
+
 func NewForgotEmailTemplate(code string) *EmailTemplate {
 	return &EmailTemplate{
 		Id:      "forgot-password",
@@ -45,9 +56,9 @@ func NewForgotEmailTemplate(code string) *EmailTemplate {
 	}
 }
 
-func NewEmailService(rabbitmq interfaces.RabbitMq) *EmailService {
+func NewEmailService(rabbitmq interfaces.Broker) *EmailService {
 	return &EmailService{
-		rabbitMq: rabbitmq,
+		broker: rabbitmq,
 	}
 }
 
@@ -61,20 +72,6 @@ func (es *EmailService) Last() (*EmailInput, error) {
 	return &es.sentEmails[emailsLen-1], nil
 }
 
-func convertToPush(input EmailInput) (*interfaces.EmailPayload, error) {
-	err := shared.Validate(input)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &interfaces.EmailPayload{
-		To:        input.To,
-		Subject:   input.Template.Subject,
-		Paramters: input.Template.Paramters,
-	}, nil
-}
-
 func (es *EmailService) Send(input EmailInput) error {
 	payload, err := convertToPush(input)
 
@@ -82,10 +79,26 @@ func (es *EmailService) Send(input EmailInput) error {
 		return err
 	}
 
-	if err := es.rabbitMq.PublishMessage(interfaces.PushEmail(*payload)); err != nil {
+	if err := es.broker.Publish(payload, adapters.EmailEventTopic); err != nil {
 		return err
 	}
 
 	es.sentEmails = append(es.sentEmails, input)
 	return nil
+}
+
+func convertToPush(input EmailInput) (*events.EmailQueueEvent, error) {
+	err := shared.Validate(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &events.EmailQueueEvent{
+		Id:        uuid.NewString(),
+		Recipient: input.To,
+		Template:  input.Template.Id,
+		Variables: input.Template.Paramters,
+		SendAt:    time.Now(),
+	}, err
 }

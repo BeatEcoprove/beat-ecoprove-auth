@@ -23,7 +23,7 @@ func getIdentityUser(
 ) (*domain.IdentityUser, error) {
 	identityUser := &domain.IdentityUser{
 		Email: email,
-		Role:  domain.Role(role),
+		Role:  domain.AuthRole(role),
 	}
 
 	err := identityUser.SetPassword(password)
@@ -89,7 +89,7 @@ func Test_LogIn_UseCase(t *testing.T) {
 		identityUser, err := getIdentityUser(
 			input.Email,
 			input.Password,
-			int(domain.Client),
+			int(domain.AuthClient),
 		)
 
 		assert.Equal(t, err, nil)
@@ -105,7 +105,7 @@ func Test_LogIn_UseCase(t *testing.T) {
 		response, err := sut.Handle(LoginInput(input))
 
 		// Assert
-		role, _ := domain.GetRole(domain.Role(identityUser.Role))
+		role, _ := domain.GetRole(domain.AuthRole(identityUser.Role))
 
 		assert.Nil(t, err)
 		assert.NotEmpty(t, response.AccessToken)

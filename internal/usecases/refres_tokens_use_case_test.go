@@ -67,7 +67,7 @@ func Test_Refresh_Token_UseCase(t *testing.T) {
 			identityUser, err := getIdentityUser(
 				data.Email,
 				data.Password,
-				int(domain.Client),
+				int(domain.AuthClient),
 			)
 
 			assert.Equal(t, err, nil)
@@ -92,7 +92,7 @@ func Test_Refresh_Token_UseCase(t *testing.T) {
 			identityUser, err := getIdentityUser(
 				data.Email,
 				data.Password,
-				int(domain.Client),
+				int(domain.AuthClient),
 			)
 
 			assert.Equal(t, err, nil)
@@ -118,7 +118,7 @@ func Test_Refresh_Token_UseCase(t *testing.T) {
 			identityUser, err := getIdentityUser(
 				data.Email,
 				data.Password,
-				int(domain.Client),
+				int(domain.AuthClient),
 			)
 
 			assert.Equal(t, err, nil)
@@ -154,7 +154,7 @@ func Test_Refresh_Token_UseCase(t *testing.T) {
 			identityUser, err := getIdentityUser(
 				data.Email,
 				data.Password,
-				int(domain.Client),
+				int(domain.AuthClient),
 			)
 
 			assert.Equal(t, err, nil)

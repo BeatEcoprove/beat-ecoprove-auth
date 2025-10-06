@@ -29,7 +29,7 @@ func (hs *HttpServer) GetVersion() fiber.Router {
 }
 
 func (hs *HttpServer) AddControllers(controllers []shared.Controller) {
-	for i := 0; i < len(controllers); i++ {
+	for i := range controllers {
 		controllers[i].Route(hs.GetVersion())
 	}
 }

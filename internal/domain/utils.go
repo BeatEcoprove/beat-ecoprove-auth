@@ -7,13 +7,13 @@ var (
 	ErrUndefinedGrantType = errors.New("grant type not defined")
 )
 
-func GetRole(role Role) (string, error) {
+func GetRole(role AuthRole) (string, error) {
 	switch role {
-	case Client:
+	case AuthClient:
 		return "client", nil
-	case Admin:
+	case AuthAdmin:
 		return "admin", nil
-	case Organization:
+	case AuthOrganization:
 		return "organization", nil
 	}
 

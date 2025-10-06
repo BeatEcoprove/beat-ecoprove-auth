@@ -34,11 +34,11 @@ func InputUnsupported(contentType string) *Error {
 	)
 }
 
-func Validate(input interface{}) error {
+func Validate(input any) error {
 	return validate.Struct(input)
 }
 
-func ParseBodyAndValidate(ctx *fiber.Ctx, request interface{}) error {
+func ParseBodyAndValidate(ctx *fiber.Ctx, request any) error {
 	errors := make(map[string]string)
 
 	if err := ctx.BodyParser(request); err != nil {

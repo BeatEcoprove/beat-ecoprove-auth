@@ -1,8 +1,12 @@
 package usecases
 
 import (
+	"log"
+
 	"github.com/BeatEcoprove/identityService/internal/domain"
+	"github.com/BeatEcoprove/identityService/internal/domain/events"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
+	"github.com/BeatEcoprove/identityService/pkg/adapters"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
 	fails "github.com/BeatEcoprove/identityService/pkg/errors"
 	"github.com/BeatEcoprove/identityService/pkg/mappers"
@@ -23,6 +27,7 @@ type (
 		tokenService services.ITokenService
 
 		emailService services.IEmailService
+		broker       adapters.Broker
 	}
 )
 
@@ -31,12 +36,14 @@ func NewSignUpUseCase(
 	profileRepo repositories.IProfileRepository,
 	tokenService services.ITokenService,
 	emailService services.IEmailService,
+	broker adapters.Broker,
 ) *SignUpUseCase {
 	return &SignUpUseCase{
 		authRepo:     authRepo,
 		profileRepo:  profileRepo,
 		tokenService: tokenService,
 		emailService: emailService,
+		broker:       broker,
 	}
 }
 
@@ -49,7 +56,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, err
 	}
 
-	role, err := domain.GetRole(domain.Role(input.Role))
+	role, err := domain.GetRole(domain.AuthRole(input.Role))
 
 	if err != nil {
 		return nil, fails.ROLE_NOT_FOUND
@@ -58,7 +65,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 	identityUser := domain.NewIdentityUser(
 		input.Email,
 		input.Password,
-		domain.Role(input.Role),
+		domain.AuthRole(input.Role),
 	)
 
 	signUpTransaction, err := as.authRepo.BeginTransaction()
@@ -89,8 +96,23 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, fails.InternalServerError()
 	}
 
+	if err := as.broker.Publish(&events.UserCreatedEvent{
+		PublicId: identityUser.ID,
+		Email:    identityUser.Email,
+		Role:     role,
+	}, adapters.AuthEventTopic); err != nil {
+		return nil, fails.InternalServerError()
+	}
+
 	if err := signUpTransaction.Commit(); err != nil {
 		return nil, fails.InternalServerError()
+	}
+
+	if err := as.emailService.Send(services.EmailInput{
+		To:       identityUser.Email,
+		Template: services.NewConfirmEmailTemplate(),
+	}); err != nil {
+		log.Println("Failed to send email of account confirmation")
 	}
 
 	return mappers.ToAuthResponse(
