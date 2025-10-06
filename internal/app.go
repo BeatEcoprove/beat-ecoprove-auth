@@ -87,7 +87,8 @@ func NewApp() (*App, error) {
 	}
 
 	eventHandlers := &handlers.EventHandlers{
-		GroupCreated: handlers.NewGroupCreatedHandler(repos.MemberChat, repos.Auth),
+		GroupCreated:   handlers.NewGroupCreatedHandler(repos.MemberChat, repos.Auth),
+		InviteAccepted: handlers.NewInviteAcceptedHandler(repos.MemberChat, repos.Auth),
 	}
 
 	httpServer := adapters.NewHttpServer(API_VERSION)
@@ -119,6 +120,7 @@ func (app *App) ApplyHttpServer() {
 
 func (app *App) ApplyConsumer() {
 	app.Consumer.Register(app.EventHandlers.GroupCreated, &events.GroupCreatedEvent{})
+	app.Consumer.Register(app.EventHandlers.InviteAccepted, &events.InviteAcceptedEvent{})
 }
 
 func (app *App) Serve() {

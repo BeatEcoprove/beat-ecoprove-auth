@@ -1,5 +1,6 @@
 package handlers
 
 type EventHandlers struct {
-	GroupCreated *GroupCreatedHandler
+	GroupCreated   *GroupCreatedHandler
+	InviteAccepted *InviteAcceptedHandler
 }

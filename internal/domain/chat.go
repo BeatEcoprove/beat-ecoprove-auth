@@ -13,6 +13,19 @@ const (
 	ChatMember    ChatRole = "member"
 )
 
+func GetChatRoleByInt(role int) ChatRole {
+	switch role {
+	case 0:
+		return ChatMember
+	case 1:
+		return ChatModerator
+	case 2:
+		return ChatAdmin
+	default:
+		return ChatMember
+	}
+}
+
 type ChatPermission string
 
 type MemberChatPermission struct {
@@ -28,6 +41,10 @@ func NewMemberChat(groupId, memberId string, role ChatRole) *MemberChatPermissio
 		MemberId: memberId,
 		Role:     string(role),
 	}
+}
+
+func (b *MemberChatPermission) IsMember(memberId string) bool {
+	return b.MemberId == memberId
 }
 
 func (b *MemberChatPermission) TableName() string {

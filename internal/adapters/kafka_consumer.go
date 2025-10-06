@@ -117,7 +117,7 @@ func (kc *KafkaConsumer) handleEvent(event interfaces.BrokerMessage) {
 	bind, ok := eventHandlers[event.EventType]
 
 	if !ok {
-		log.Println("event type isn't register yet")
+		log.Printf("event type isn't register yet, %+v", event)
 		return
 	}
 
