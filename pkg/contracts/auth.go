@@ -23,6 +23,16 @@ type (
 		ProfileID string `json:"profile_id"`
 	}
 
+	GroupPermissionsResponse struct {
+		MemberID string `json:"member_id"`
+		Role     string `json:"role"`
+	}
+
+	GroupPermissionsRequest struct {
+		GroupID  string `json:"group_id" validate:"uuid"`
+		MemberID string `json:"member_id" validate:"uuid"`
+	}
+
 	TokenRequest struct {
 		GrantType string `json:"grant_type" form:"grant_type"`
 	}

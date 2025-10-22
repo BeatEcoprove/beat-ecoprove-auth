@@ -56,4 +56,16 @@ var (
 		"Code is not valid",
 		"Please provide a valid code, try again later",
 	)
+
+	GROUP_NOT_FOUND = shared.NewNotFoundError(
+		"group-not-found",
+		"Group not found",
+		"The group that you were looking for doesn't exist",
+	)
+
+	MEMBER_NOT_FOUND = shared.NewNotFoundError(
+		"member-not-found",
+		"Member not found",
+		"This member doesn't belong to this group",
+	)
 )

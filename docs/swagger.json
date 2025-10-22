@@ -106,6 +106,63 @@
                 }
             }
         },
+        "/groups/permissions": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Internal"
+                ],
+                "summary": "Register an access key to obtain a `profileId`, which allows you to create a profile on the platform.",
+                "parameters": [
+                    {
+                        "description": "Sign Up Payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/contracts.SignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Account Created",
+                        "schema": {
+                            "$ref": "#/definitions/contracts.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "$ref": "#/definitions/shared.ProblemDetailsExtendend"
+                        }
+                    },
+                    "404": {
+                        "description": "Role not found",
+                        "schema": {
+                            "$ref": "#/definitions/shared.ProblemDetails"
+                        }
+                    },
+                    "409": {
+                        "description": "Invalid Password or Email already used",
+                        "schema": {
+                            "$ref": "#/definitions/shared.ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Server failed to provide an valid response",
+                        "schema": {
+                            "$ref": "#/definitions/shared.ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/profiles": {
             "post": {
                 "security": [

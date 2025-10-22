@@ -59,13 +59,14 @@ func NewApp() (*App, error) {
 	}
 
 	usecases := &usecases.UseCases{
-		Sign:           usecases.NewSignUpUseCase(repos.Auth, repos.Profile, services.Token, services.Email, kafkaPub),
-		Login:          usecases.NewLoginUseCase(repos.Auth, repos.Profile, services.Token),
-		AttachProfile:  usecases.NewAttachProfileUseCase(repos.Auth, repos.Profile),
-		RefreshTokens:  usecases.NewRefreshTokensUseCase(repos.Auth, repos.Profile, services.Token),
-		ForgotPassword: usecases.NewForgotPasswordUseCase(repos.Auth, services.PG, services.Email),
-		ResetPassword:  usecases.NewResetPasswdUseCase(repos.Auth, services.PG, services.Email),
-		CheckFields:    usecases.NewCheckFieldUseCase(repos.Auth),
+		Sign:             usecases.NewSignUpUseCase(repos.Auth, repos.Profile, services.Token, services.Email, kafkaPub),
+		Login:            usecases.NewLoginUseCase(repos.Auth, repos.Profile, services.Token),
+		AttachProfile:    usecases.NewAttachProfileUseCase(repos.Auth, repos.Profile),
+		RefreshTokens:    usecases.NewRefreshTokensUseCase(repos.Auth, repos.Profile, services.Token),
+		ForgotPassword:   usecases.NewForgotPasswordUseCase(repos.Auth, services.PG, services.Email),
+		ResetPassword:    usecases.NewResetPasswdUseCase(repos.Auth, services.PG, services.Email),
+		CheckFields:      usecases.NewCheckFieldUseCase(repos.Auth),
+		FetchPermissions: usecases.NewFetchGroupUserPermissionsUseCase(repos.MemberChat),
 	}
 
 	middlewares := &middlewares.Middlewares{
@@ -83,6 +84,7 @@ func NewApp() (*App, error) {
 			usecases.ResetPassword,
 			usecases.CheckFields,
 			middlewares.Authorization,
+			usecases.FetchPermissions,
 		),
 	}
 

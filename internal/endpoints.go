@@ -16,6 +16,7 @@ const (
 	AuthRoutes         = "auth"
 	ProfileRoutes      = "profiles"
 	AvailabilityRoutes = "availability"
+	GroupRoutes        = "groups"
 
 	GrantTypePassword      = "password"
 	GrantTypeRefreshTokens = "refresh_token"
@@ -29,6 +30,7 @@ type AuthController struct {
 	forgotPasswordUseCase *usecases.ForgotPasswordUseCase
 	resetPasswdUseCase    *usecases.ResetPasswdUseCase
 	checkFieldUseCase     *usecases.CheckFieldUseCase
+	fechPermissions       *usecases.FetchGroupUserPermissionsUseCase
 
 	authMiddleware *middlewares.AuthorizationMiddleware
 }
@@ -42,6 +44,7 @@ func NewAuthController(
 	resetPasswdUseCase *usecases.ResetPasswdUseCase,
 	checkFieldUseCase *usecases.CheckFieldUseCase,
 	authMiddleware *middlewares.AuthorizationMiddleware,
+	fechPermissions *usecases.FetchGroupUserPermissionsUseCase,
 ) *AuthController {
 	return &AuthController{
 		signUpUseCase:         signUpUseCase,
@@ -52,11 +55,12 @@ func NewAuthController(
 		resetPasswdUseCase:    resetPasswdUseCase,
 		checkFieldUseCase:     checkFieldUseCase,
 		authMiddleware:        authMiddleware,
+		fechPermissions:       fechPermissions,
 	}
 }
 
 func (c *AuthController) Route(router fiber.Router) {
-	// heath check
+	// heath check - router
 
 	authRoutes := router.Group(AuthRoutes)
 	authRoutes.Post("reset-password", c.ResetPassword)
@@ -71,6 +75,8 @@ func (c *AuthController) Route(router fiber.Router) {
 	availabilityRoutes := authRoutes.Group(AvailabilityRoutes)
 	availabilityRoutes.Get("check-field", c.CheckField)
 
+	groupRoutes := authRoutes.Group(GroupRoutes)
+	groupRoutes.Get("permissions", c.FetchGroupPermissions)
 }
 
 // // ShowAccount godoc
@@ -351,4 +357,39 @@ func (c *AuthController) SignUp(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(response)
+}
+
+// // ShowAccount godoc
+//
+//	@Summary	Register an access key to obtain a `profileId`, which allows you to create a profile on the platform.
+//	@Tags		Internal
+//	@Accept		application/json
+//	@Produce	json
+//
+//	@Param		data			body		contracts.SignUpRequest	true	"Sign Up Payload"
+//	@Success	201				{object}	contracts.AuthResponse "Account Created"
+//
+// @Failure  400       {object}  shared.ProblemDetailsExtendend   "Invalid parameters"
+// @Failure  404       {object}  shared.ProblemDetails   "Role not found"
+// @Failure  409       {object}  shared.ProblemDetails   "Invalid Password or Email already used"
+// @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
+//
+//	@Router		/groups/permissions [post]
+func (c *AuthController) FetchGroupPermissions(ctx *fiber.Ctx) error {
+	var fetchPermissionsRequest contracts.GroupPermissionsRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &fetchPermissionsRequest); err != nil {
+		return err
+	}
+
+	response, err := c.fechPermissions.Handle(usecases.FetchGroupUserPermissionsInput{
+		GroupID:  fetchPermissionsRequest.GroupID,
+		MmeberID: fetchPermissionsRequest.MemberID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
 }

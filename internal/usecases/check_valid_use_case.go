@@ -3,7 +3,6 @@ package usecases
 import "github.com/BeatEcoprove/identityService/internal/repositories"
 
 type (
-	// input
 	CheckFieldInput struct {
 		Email string
 	}
