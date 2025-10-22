@@ -7,12 +7,18 @@ import (
 	"github.com/BeatEcoprove/identityService/internal/usecases"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
 	fails "github.com/BeatEcoprove/identityService/pkg/errors"
+	"github.com/BeatEcoprove/identityService/pkg/services"
 	"github.com/BeatEcoprove/identityService/pkg/shared"
 	"github.com/gofiber/fiber/v2"
 )
 
 const (
-	AUTH_CONTROLLER_NAME = "auth"
+	AuthRoutes         = "auth"
+	ProfileRoutes      = "profiles"
+	AvailabilityRoutes = "availability"
+
+	GrantTypePassword      = "password"
+	GrantTypeRefreshTokens = "refresh_token"
 )
 
 type AuthController struct {
@@ -50,25 +56,102 @@ func NewAuthController(
 }
 
 func (c *AuthController) Route(router fiber.Router) {
-	authRoutes := router.Group(AUTH_CONTROLLER_NAME)
+	// heath check
 
-	authRoutes.Post("profile", c.authMiddleware.AccessTokenHandler, c.AttachProfile)
-	authRoutes.Get("token", c.authMiddleware.AccessTokenHandler, c.Token)
-	authRoutes.Get("refresh-token", c.authMiddleware.RefreshTokenHandler, c.RefreshTokens)
-
-	authRoutes.Get("check-field", c.CheckField)
-
+	authRoutes := router.Group(AuthRoutes)
 	authRoutes.Post("reset-password", c.ResetPassword)
 	authRoutes.Post("forgot-password", c.ForgotPassword)
-
-	authRoutes.Post("login", c.Login)
+	authRoutes.Post("token", c.Token)
 	authRoutes.Post("sign-up", c.SignUp)
+
+	profileRoutes := authRoutes.Group(ProfileRoutes)
+	profileRoutes.Post("", c.authMiddleware.AccessTokenHandler, c.AttachProfile)
+	profileRoutes.Get("me", c.authMiddleware.AccessTokenHandler, c.Me)
+
+	availabilityRoutes := authRoutes.Group(AvailabilityRoutes)
+	availabilityRoutes.Get("check-field", c.CheckField)
+
+}
+
+// // ShowAccount godoc
+//
+//	@Summary	OAuth2 endpoints for authorization
+//	@Tags		Authentication
+//	@Accept		application/json
+//	@Produce	json
+//
+//	@Param		data			body		contracts.LoginRequest	true	"LogIn Payload"
+//	@Success	200				{object}	contracts.AuthResponse "Get Access Credentials"
+//
+// @Failure  400       {object}  shared.ProblemDetailsExtendend   "Invalid parameters"
+// @Failure  401       {object}  shared.ProblemDetails   "Authentication Failed"
+// @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
+//
+//	@Router		/token [post]
+func (c *AuthController) Token(ctx *fiber.Ctx) error {
+	var request contracts.TokenRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &request); err != nil {
+		return err
+	}
+
+	switch request.GrantType {
+	case GrantTypePassword:
+		return c.handleLogin(ctx)
+	case GrantTypeRefreshTokens:
+		return c.handleRefreshTokens(ctx)
+	default:
+		return fails.DONT_HAVE_ACCESS_TO_RESOURCE
+	}
+}
+
+func (c *AuthController) handleLogin(ctx *fiber.Ctx) error {
+	var loginRequest contracts.LoginRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &loginRequest); err != nil {
+		return err
+	}
+
+	response, err := c.loginUseCase.Handle(usecases.LoginInput{
+		Email:    loginRequest.Email,
+		Password: loginRequest.Password,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
+}
+
+func (c *AuthController) handleRefreshTokens(ctx *fiber.Ctx) error {
+	var refreshTokenRequest contracts.RefreshTokenRequest
+
+	if err := shared.ParseBodyAndValidate(ctx, &refreshTokenRequest); err != nil {
+		return err
+	}
+
+	var claims services.AuthClaims
+	if err := services.GetClaims(refreshTokenRequest.Token, &claims, services.Refresh); err != nil {
+		return err
+	}
+
+	response, err := c.refreshTokensUseCase.Handle(usecases.RefreshTokensInput{
+		AuthId:    claims.Subject,
+		ProfileId: refreshTokenRequest.ProfileID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(response)
 }
 
 // // ShowAccount godoc
 //
 //	@Summary	Attach a profile to the `created account`.
-//	@Tags		Profiles
+//	@Tags		Account
 //	@Accept		application/json
 //	@Produce	json
 //
@@ -81,22 +164,22 @@ func (c *AuthController) Route(router fiber.Router) {
 // @Failure  404       {object}  shared.ProblemDetails   "Grant Type not found"
 // @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
 //
-//	@Router		/profile [post]
+//	@Router		/profiles [post]
 func (c *AuthController) AttachProfile(ctx *fiber.Ctx) error {
 	var attachProfileRequest contracts.AttachProfileRequest
 
-	authId, err := middlewares.GetUserId(ctx)
+	authID, err := middlewares.GetUserID(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	if err := shared.ParseBodyAndValidate(ctx, &attachProfileRequest); err != nil {
+	if err = shared.ParseBodyAndValidate(ctx, &attachProfileRequest); err != nil {
 		return err
 	}
 
 	response, err := c.attachProfileUseCase.Handle(usecases.AttachProfileInput{
-		AuthId:           authId,
+		AuthId:           authID,
 		ProfileGrantType: attachProfileRequest.ProfileGrantType,
 	})
 
@@ -110,7 +193,7 @@ func (c *AuthController) AttachProfile(ctx *fiber.Ctx) error {
 // ShowAccount godoc
 //
 //	@Summary	Validate the provided `token` and returns success or failed weather the token was signed by the `public key`.
-//	@Tags		Access Credentials
+//	@Tags		Account
 //	@Accept		application/json
 //	@Produce	json
 //
@@ -121,8 +204,8 @@ func (c *AuthController) AttachProfile(ctx *fiber.Ctx) error {
 // @Failure  403       {object}  shared.ProblemDetails   "Don't have access to this resource"
 // @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
 //
-//	@Router		/token [get]
-func (c *AuthController) Token(ctx *fiber.Ctx) error {
+//	@Router		/profiles/me [get]
+func (c *AuthController) Me(ctx *fiber.Ctx) error {
 	_, claims, err := middlewares.GetClaims(ctx)
 
 	if err != nil {
@@ -130,59 +213,18 @@ func (c *AuthController) Token(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(&contracts.AccountResponse{
-		UserId:     claims.Subject,
+		UserID:     claims.Subject,
 		Email:      claims.Email,
-		ProfileId:  claims.ProfileId,
+		ProfileID:  claims.ProfileID,
 		ProfileIds: claims.ProfileIds,
 		Role:       claims.Role,
 	})
 }
 
-// ShowAccount godoc
-//
-//	@Summary	It receives the `refresh token` and validates it. Then, creates a new refresh token and access token revoking the other ones.
-//	@Tags		Access Credentials
-//	@Accept		application/json
-//	@Produce	json
-//
-//	@Param		profile_id			query		string	false	"switch access to (profile_id) or if not provided default to main profile"
-//	@Success	200				{object}	contracts.AuthResponse "Access Credentials"
-//	@security	Bearer
-//
-// @Failure  401       {object}  shared.ProblemDetails   "Authentication Failed"
-// @Failure  403       {object}  shared.ProblemDetails   "Don't have access to this resource"
-// @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
-//
-//	@Router		/refresh-token [get]
-func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
-	profileId := ctx.Query("profile_id", "")
-
-	authId, err := middlewares.GetUserId(ctx)
-
-	if err != nil {
-		return err
-	}
-
-	if err := shared.Validate(&contracts.RefreshTokensRequest{ProfileId: profileId}); err != nil && profileId != "" {
-		return fails.BAD_UUID
-	}
-
-	response, err := c.refreshTokensUseCase.Handle(usecases.RefreshTokensInput{
-		AuthId:    authId,
-		ProfileId: profileId,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return ctx.Status(fiber.StatusOK).JSON(response)
-}
-
 // // ShowAccount godoc
 //
 //	@Summary	Checks if the email is not already registered on the platform.
-//	@Tags		Validation
+//	@Tags		Availability
 //	@Accept		application/json
 //	@Produce	json
 //
@@ -192,7 +234,7 @@ func (c *AuthController) RefreshTokens(ctx *fiber.Ctx) error {
 // @Failure  409       {object}  shared.ProblemDetails   "Invalid Email"
 // @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
 //
-//	@Router		/check-field [get]
+//	@Router		/availability/check-field [get]
 func (c *AuthController) CheckField(ctx *fiber.Ctx) error {
 	email := ctx.Query("email", "")
 
@@ -266,40 +308,6 @@ func (c *AuthController) ForgotPassword(ctx *fiber.Ctx) error {
 
 	response, err := c.forgotPasswordUseCase.Handle(usecases.ForgotPasswordInput{
 		Email: forgotPasswordRequest.Email,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return ctx.Status(fiber.StatusOK).JSON(response)
-}
-
-// // ShowAccount godoc
-//
-//	@Summary	Gives the `access token` and `refresh token` that is needed to interact with the platform, along with all user's profiles ids.
-//	@Tags		Authentication
-//	@Accept		application/json
-//	@Produce	json
-//
-//	@Param		data			body		contracts.LoginRequest	true	"LogIn Payload"
-//	@Success	200				{object}	contracts.AuthResponse "Get Access Credentials"
-//
-// @Failure  400       {object}  shared.ProblemDetailsExtendend   "Invalid parameters"
-// @Failure  401       {object}  shared.ProblemDetails   "Authentication Failed"
-// @Failure  500       {object}  shared.ProblemDetails   "Server failed to provide an valid response"
-//
-//	@Router		/login [post]
-func (c *AuthController) Login(ctx *fiber.Ctx) error {
-	var loginRequest contracts.LoginRequest
-
-	if err := shared.ParseBodyAndValidate(ctx, &loginRequest); err != nil {
-		return err
-	}
-
-	response, err := c.loginUseCase.Handle(usecases.LoginInput{
-		Email:    loginRequest.Email,
-		Password: loginRequest.Password,
 	})
 
 	if err != nil {

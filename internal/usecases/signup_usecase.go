@@ -85,9 +85,9 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 	}
 
 	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
-		UserId:     identityUser.ID,
+		UserID:     identityUser.ID,
 		Email:      identityUser.Email,
-		ProfileId:  profile.ID,
+		ProfileID:  profile.ID,
 		ProfileIds: make([]string, 0),
 		Role:       role,
 	})
@@ -101,6 +101,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		Email:    identityUser.Email,
 		Role:     role,
 	}, adapters.AuthEventTopic); err != nil {
+		log.Printf("failed to send kafka event %s", err.Error())
 		return nil, fails.InternalServerError()
 	}
 

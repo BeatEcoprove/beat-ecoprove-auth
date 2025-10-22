@@ -20,8 +20,8 @@ type (
 
 	TokenPayload struct {
 		Email      string
-		UserId     string
-		ProfileId  string
+		UserID     string
+		ProfileID  string
 		ProfileIds []string
 		Role       string
 		Duration   time.Time
@@ -32,7 +32,7 @@ type (
 		jwt.RegisteredClaims
 		Email      string   `json:"email,omitempty"`
 		Role       string   `json:"role,omitempty"`
-		ProfileId  string   `json:"profileId,omitempty"`
+		ProfileID  string   `json:"profileId,omitempty"`
 		ProfileIds []string `json:"profileIds"`
 	}
 )
@@ -46,6 +46,7 @@ var (
 	ErrCreatingToken         = errors.New("error creating jwt token")
 	ErrInvalidKidTokenHeader = errors.New("invalid or missing 'kid' in token header")
 	ErrInvalidToken          = errors.New("invalid token")
+	ErrInvalidTokenType      = errors.New("invalid token type")
 )
 
 var privKey *rsa.PrivateKey
@@ -76,14 +77,14 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 	claims := AuthClaims{
 		Email:      payload.Email,
 		Role:       payload.Role,
-		ProfileId:  payload.ProfileId,
+		ProfileID:  payload.ProfileID,
 		ProfileIds: payload.ProfileIds,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    env.JWT_ISSUER,
 			Audience:  jwt.ClaimStrings{env.JWT_AUDIENCE},
 			IssuedAt:  &jwt.NumericDate{Time: time.Now()},
 			ExpiresAt: &jwt.NumericDate{Time: payload.Duration},
-			Subject:   payload.UserId,
+			Subject:   payload.UserID,
 			ID:        uuid.New().String(),
 		},
 	}
@@ -108,8 +109,8 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 	}, nil
 }
 
-func GetClaims(token string, claims jwt.Claims) error {
-	jwtToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+func GetClaims(token string, claims jwt.Claims, tokenType TokenType) error {
+	jwtToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
@@ -122,6 +123,12 @@ func GetClaims(token string, claims jwt.Claims) error {
 
 		if storedJwks.Keys[0].Kid != kid {
 			return nil, ErrInvalidToken
+		}
+
+		typ, ok := t.Header["typ"].(string)
+
+		if !ok || typ != string(tokenType) {
+			return nil, ErrInvalidTokenType
 		}
 
 		return PubKey, nil
@@ -139,5 +146,5 @@ func GetClaims(token string, claims jwt.Claims) error {
 }
 
 func ValidateToken(token string) bool {
-	return GetClaims(token, &AuthClaims{}) == nil
+	return GetClaims(token, &AuthClaims{}, Access) == nil
 }

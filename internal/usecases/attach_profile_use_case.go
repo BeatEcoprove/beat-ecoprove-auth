@@ -78,6 +78,6 @@ func (apu *AttachProfileUseCase) Handle(request AttachProfileInput) (*contracts.
 	}
 
 	return &contracts.ProfileResponse{
-		ProfileId: profile.ID,
+		ProfileID: profile.ID,
 	}, nil
 }

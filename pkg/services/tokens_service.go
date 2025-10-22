@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"time"
 
 	"github.com/BeatEcoprove/identityService/config"
@@ -12,7 +13,7 @@ type (
 
 	ITokenService interface {
 		CreateAuthenticationTokens(payload TokenPayload) (*JwtToken, *JwtToken, error)
-		ValidateToken(authId, token string, key TokenKey) error
+		ValidateToken(authID, token string, key TokenKey) error
 	}
 
 	TokenService struct {
@@ -98,14 +99,16 @@ func (ts *TokenService) CreateAuthenticationTokens(payload TokenPayload) (*JwtTo
 		return nil, nil, err
 	}
 
-	ts.redis.GetAndDelValue(NewAccessTokenKey(payload.UserId))
-	ts.redis.GetAndDelValue(NewRefreshTokenKey(payload.UserId))
+	ts.redis.GetAndDelValue(NewAccessTokenKey(payload.UserID))
+	ts.redis.GetAndDelValue(NewRefreshTokenKey(payload.UserID))
 
-	if err := ts.redis.SetValue(NewAccessTokenKey(payload.UserId), accessToken.Token, accessTokenExp); err != nil {
+	if err := ts.redis.SetValue(NewAccessTokenKey(payload.UserID), accessToken.Token, accessTokenExp); err != nil {
+		log.Printf("%s", err.Error())
 		return nil, nil, ErrCreatingToken
 	}
 
-	if err := ts.redis.SetValue(NewRefreshTokenKey(payload.UserId), refreshToken.Token, refreshTokenExp); err != nil {
+	if err := ts.redis.SetValue(NewRefreshTokenKey(payload.UserID), refreshToken.Token, refreshTokenExp); err != nil {
+		log.Printf("%s", err.Error())
 		return nil, nil, ErrCreatingToken
 	}
 

@@ -69,18 +69,6 @@ func (am *AuthorizationMiddleware) AccessTokenHandler(ctx *fiber.Ctx) error {
 	})
 }
 
-func (am *AuthorizationMiddleware) RefreshTokenHandler(ctx *fiber.Ctx) error {
-	return am.tokenHandler(ctx, func(claims *services.AuthClaims, token *jwt.Token) error {
-		err := am.tokenService.ValidateToken(claims.Subject, token.Raw, services.RefreshTokenKey)
-
-		if err != nil {
-			return fails.INVALID_REFRESH_TOKEN
-		}
-
-		return nil
-	})
-}
-
 func GetClaims(ctx *fiber.Ctx) (*jwt.Token, *services.AuthClaims, error) {
 	token, ok := ctx.Locals("user").(*jwt.Token)
 
@@ -97,7 +85,7 @@ func GetClaims(ctx *fiber.Ctx) (*jwt.Token, *services.AuthClaims, error) {
 	return token, claims, nil
 }
 
-func GetUserId(ctx *fiber.Ctx) (string, error) {
+func GetUserID(ctx *fiber.Ctx) (string, error) {
 	_, claims, err := GetClaims(ctx)
 
 	if err != nil {

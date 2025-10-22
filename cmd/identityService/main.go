@@ -90,7 +90,7 @@ func main() {
 	}
 
 	app.ApplyConsumer()
-	app.ApplyHttpServer()
+	app.ApplyHTTPServer()
 
 	app.Serve()
 	defer app.Close()

@@ -69,9 +69,9 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 	mainProfile, subProfiles := domain.FilterProfiles(attachedProfiles)
 
 	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
-		UserId:     identityUser.ID,
+		UserID:     identityUser.ID,
 		Email:      identityUser.Email,
-		ProfileId:  mainProfile.ID,
+		ProfileID:  mainProfile.ID,
 		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
 		Role:       role,
 	})

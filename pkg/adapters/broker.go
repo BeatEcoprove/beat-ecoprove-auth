@@ -46,5 +46,3 @@ type (
 		OccurredAt time.Time       `json:"occurred_at"`
 	}
 )
-
-var request_id int = 0

@@ -14,15 +14,15 @@ import (
 )
 
 const (
-	API_VERSION = "2"
+	APIVersion = "1"
 )
 
 type App struct {
-	Db            interfaces.Database
+	DB            interfaces.Database
 	Redis         interfaces.Redis
 	Publisher     interfaces.Broker
 	Consumer      interfaces.Consumer
-	HttpServer    *adapters.HttpServer
+	HTTPServer    *adapters.HttpServer
 	Controllers   *Controllers
 	Middlewares   *middlewares.Middlewares
 	Repositories  *repositories.Repositories
@@ -91,14 +91,14 @@ func NewApp() (*App, error) {
 		InviteAccepted: handlers.NewInviteAcceptedHandler(repos.MemberChat, repos.Auth),
 	}
 
-	httpServer := adapters.NewHttpServer(API_VERSION)
+	httpServer := adapters.NewHttpServer(APIVersion)
 
 	return &App{
-		Db:            db,
+		DB:            db,
 		Redis:         redis,
 		Publisher:     kafkaPub,
 		Consumer:      kafkaSub,
-		HttpServer:    httpServer,
+		HTTPServer:    httpServer,
 		Controllers:   controllers,
 		Middlewares:   middlewares,
 		Repositories:  repos,
@@ -108,12 +108,12 @@ func NewApp() (*App, error) {
 	}, nil
 }
 
-func (app *App) ApplyHttpServer() {
+func (app *App) ApplyHTTPServer() {
 	env := config.GetConfig()
-	adapters.UseSwagger(app.HttpServer, env.BEAT_IDENTITY_SERVER)
+	adapters.UseSwagger(app.HTTPServer, env.BEAT_IDENTITY_SERVER)
 
-	app.HttpServer.AddStaticController(app.Controllers.Static)
-	app.HttpServer.AddControllers([]shared.Controller{
+	app.HTTPServer.AddStaticController(app.Controllers.Static)
+	app.HTTPServer.AddControllers([]shared.Controller{
 		app.Controllers.Auth,
 	})
 }
@@ -126,7 +126,7 @@ func (app *App) ApplyConsumer() {
 func (app *App) Serve() {
 	env := config.GetConfig()
 
-	go app.HttpServer.Serve(env.BEAT_IDENTITY_SERVER)
+	go app.HTTPServer.Serve(env.BEAT_IDENTITY_SERVER)
 	go app.Consumer.Consume()
 }
 
@@ -147,7 +147,7 @@ func initKafka() (*adapters.KafkaPublisher, *adapters.KafkaConsumer, error) {
 }
 
 func (app *App) Close() error {
-	app.Db.Close()
+	app.DB.Close()
 	app.Redis.Close()
 	app.Publisher.Close()
 	app.Consumer.Close()

@@ -26,9 +26,9 @@ func ToAuthResponse(
 ) *contracts.AuthResponse {
 	return &contracts.AuthResponse{
 		Details: contracts.AccountResponse{
-			UserId:     identityUser.ID,
+			UserID:     identityUser.ID,
 			Email:      identityUser.Email,
-			ProfileId:  mainProfile.ID,
+			ProfileID:  mainProfile.ID,
 			ProfileIds: MapProfileIdsToString(profiles),
 			Role:       role,
 		},

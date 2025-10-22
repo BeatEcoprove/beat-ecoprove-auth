@@ -23,7 +23,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/check-field": {
+        "/availability/check-field": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -32,7 +32,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Validation"
+                    "Availability"
                 ],
                 "summary": "Checks if the email is not already registered on the platform.",
                 "parameters": [
@@ -117,58 +117,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/login": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Gives the ` + "`" + `access token` + "`" + ` and ` + "`" + `refresh token` + "`" + ` that is needed to interact with the platform, along with all user's profiles ids.",
-                "parameters": [
-                    {
-                        "description": "LogIn Payload",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/contracts.LoginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Get Access Credentials",
-                        "schema": {
-                            "$ref": "#/definitions/contracts.AuthResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid parameters",
-                        "schema": {
-                            "$ref": "#/definitions/shared.ProblemDetailsExtendend"
-                        }
-                    },
-                    "401": {
-                        "description": "Authentication Failed",
-                        "schema": {
-                            "$ref": "#/definitions/shared.ProblemDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Server failed to provide an valid response",
-                        "schema": {
-                            "$ref": "#/definitions/shared.ProblemDetails"
-                        }
-                    }
-                }
-            }
-        },
-        "/profile": {
+        "/profiles": {
             "post": {
                 "security": [
                     {
@@ -182,7 +131,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Profiles"
+                    "Account"
                 ],
                 "summary": "Attach a profile to the ` + "`" + `created account` + "`" + `.",
                 "parameters": [
@@ -224,7 +173,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/refresh-token": {
+        "/profiles/me": {
             "get": {
                 "security": [
                     {
@@ -238,22 +187,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Access Credentials"
+                    "Account"
                 ],
-                "summary": "It receives the ` + "`" + `refresh token` + "`" + ` and validates it. Then, creates a new refresh token and access token revoking the other ones.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "switch access to (profile_id) or if not provided default to main profile",
-                        "name": "profile_id",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Validate the provided ` + "`" + `token` + "`" + ` and returns success or failed weather the token was signed by the ` + "`" + `public key` + "`" + `.",
                 "responses": {
                     "200": {
-                        "description": "Access Credentials",
+                        "description": "Token Payload",
                         "schema": {
-                            "$ref": "#/definitions/contracts.AuthResponse"
+                            "$ref": "#/definitions/contracts.AccountResponse"
                         }
                     },
                     "401": {
@@ -386,12 +327,7 @@ const docTemplate = `{
             }
         },
         "/token": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -399,24 +335,35 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Access Credentials"
+                    "Authentication"
                 ],
-                "summary": "Validate the provided ` + "`" + `token` + "`" + ` and returns success or failed weather the token was signed by the ` + "`" + `public key` + "`" + `.",
+                "summary": "OAuth2 endpoints for authorization",
+                "parameters": [
+                    {
+                        "description": "LogIn Payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/contracts.LoginRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Token Payload",
+                        "description": "Get Access Credentials",
                         "schema": {
-                            "$ref": "#/definitions/contracts.AccountResponse"
+                            "$ref": "#/definitions/contracts.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "$ref": "#/definitions/shared.ProblemDetailsExtendend"
                         }
                     },
                     "401": {
                         "description": "Authentication Failed",
-                        "schema": {
-                            "$ref": "#/definitions/shared.ProblemDetails"
-                        }
-                    },
-                    "403": {
-                        "description": "Don't have access to this resource",
                         "schema": {
                             "$ref": "#/definitions/shared.ProblemDetails"
                         }
@@ -510,6 +457,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
+                    "type": "string"
+                },
+                "grant_type": {
                     "type": "string"
                 },
                 "password": {

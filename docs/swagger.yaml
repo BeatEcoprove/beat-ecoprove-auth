@@ -48,6 +48,8 @@ definitions:
     properties:
       email:
         type: string
+      grant_type:
+        type: string
       password:
         minLength: 8
         type: string
@@ -129,7 +131,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
 paths:
-  /check-field:
+  /availability/check-field:
     get:
       consumes:
       - application/json
@@ -156,7 +158,7 @@ paths:
             $ref: '#/definitions/shared.ProblemDetails'
       summary: Checks if the email is not already registered on the platform.
       tags:
-      - Validation
+      - Availability
   /forgot-password:
     post:
       consumes:
@@ -191,41 +193,7 @@ paths:
         a new password.
       tags:
       - Authentication
-  /login:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: LogIn Payload
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/contracts.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Get Access Credentials
-          schema:
-            $ref: '#/definitions/contracts.AuthResponse'
-        "400":
-          description: Invalid parameters
-          schema:
-            $ref: '#/definitions/shared.ProblemDetailsExtendend'
-        "401":
-          description: Authentication Failed
-          schema:
-            $ref: '#/definitions/shared.ProblemDetails'
-        "500":
-          description: Server failed to provide an valid response
-          schema:
-            $ref: '#/definitions/shared.ProblemDetails'
-      summary: Gives the `access token` and `refresh token` that is needed to interact
-        with the platform, along with all user's profiles ids.
-      tags:
-      - Authentication
-  /profile:
+  /profiles:
     post:
       consumes:
       - application/json
@@ -259,24 +227,18 @@ paths:
       - Bearer: []
       summary: Attach a profile to the `created account`.
       tags:
-      - Profiles
-  /refresh-token:
+      - Account
+  /profiles/me:
     get:
       consumes:
       - application/json
-      parameters:
-      - description: switch access to (profile_id) or if not provided default to main
-          profile
-        in: query
-        name: profile_id
-        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Access Credentials
+          description: Token Payload
           schema:
-            $ref: '#/definitions/contracts.AuthResponse'
+            $ref: '#/definitions/contracts.AccountResponse'
         "401":
           description: Authentication Failed
           schema:
@@ -291,10 +253,10 @@ paths:
             $ref: '#/definitions/shared.ProblemDetails'
       security:
       - Bearer: []
-      summary: It receives the `refresh token` and validates it. Then, creates a new
-        refresh token and access token revoking the other ones.
+      summary: Validate the provided `token` and returns success or failed weather
+        the token was signed by the `public key`.
       tags:
-      - Access Credentials
+      - Account
   /reset-password:
     post:
       consumes:
@@ -368,34 +330,38 @@ paths:
       tags:
       - Authentication
   /token:
-    get:
+    post:
       consumes:
       - application/json
+      parameters:
+      - description: LogIn Payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Token Payload
+          description: Get Access Credentials
           schema:
-            $ref: '#/definitions/contracts.AccountResponse'
+            $ref: '#/definitions/contracts.AuthResponse'
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/shared.ProblemDetailsExtendend'
         "401":
           description: Authentication Failed
-          schema:
-            $ref: '#/definitions/shared.ProblemDetails'
-        "403":
-          description: Don't have access to this resource
           schema:
             $ref: '#/definitions/shared.ProblemDetails'
         "500":
           description: Server failed to provide an valid response
           schema:
             $ref: '#/definitions/shared.ProblemDetails'
-      security:
-      - Bearer: []
-      summary: Validate the provided `token` and returns success or failed weather
-        the token was signed by the `public key`.
+      summary: OAuth2 endpoints for authorization
       tags:
-      - Access Credentials
+      - Authentication
 securityDefinitions:
   Bearer:
     description: 'Enter the token with the `Bearer: ` prefix, e.g. "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ5MjRhNmEx..."'

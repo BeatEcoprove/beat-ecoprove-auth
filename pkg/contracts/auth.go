@@ -5,10 +5,6 @@ type (
 		Email string `validate:"required,email"`
 	}
 
-	RefreshTokensRequest struct {
-		ProfileId string `validate:"required,uuid"`
-	}
-
 	ForgotPasswordRequest struct {
 		Email string `json:"email" validate:"required,email"`
 	}
@@ -24,12 +20,23 @@ type (
 	}
 
 	ProfileResponse struct {
-		ProfileId string `json:"profile_id"`
+		ProfileID string `json:"profile_id"`
+	}
+
+	TokenRequest struct {
+		GrantType string `json:"grant_type" form:"grant_type"`
 	}
 
 	LoginRequest struct {
+		TokenRequest
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=8"`
+	}
+
+	RefreshTokenRequest struct {
+		TokenRequest
+		Token     string `json:"token" form:"token"`
+		ProfileID string `json:"profile_id" form:"profile_id" validate:"omitempty,uuid"`
 	}
 
 	SignUpRequest struct {
@@ -39,9 +46,9 @@ type (
 	}
 
 	AccountResponse struct {
-		UserId     string   `json:"user_id"`
+		UserID     string   `json:"user_id"`
 		Email      string   `json:"email"`
-		ProfileId  string   `json:"profile_id"`
+		ProfileID  string   `json:"profile_id"`
 		ProfileIds []string `json:"profile_ids"`
 		Role       string   `json:"role"`
 	}

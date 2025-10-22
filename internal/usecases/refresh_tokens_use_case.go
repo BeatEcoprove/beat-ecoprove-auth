@@ -55,9 +55,9 @@ func (rtu *RefreshTokensUseCase) Handle(request RefreshTokensInput) (*contracts.
 	}
 
 	accessToken, refreshToken, err := rtu.tokenService.CreateAuthenticationTokens(services.TokenPayload{
-		UserId:     identityUser.ID,
+		UserID:     identityUser.ID,
 		Email:      identityUser.Email,
-		ProfileId:  mainProfile.ID,
+		ProfileID:  mainProfile.ID,
 		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
 		Role:       role,
 	})
