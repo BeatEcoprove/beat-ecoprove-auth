@@ -11,6 +11,43 @@ www
 
 todo.md
 
+# Nix
+result
+result-*
+.direnv/
+.envrc
+
+# Go
+vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+*.log
+
+# Build artifacts
+dist/
+build/
+bin/
+tmp/
+
 # Environment Variables
 .env*
 !.env.example
