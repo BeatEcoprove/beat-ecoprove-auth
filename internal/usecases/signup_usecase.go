@@ -18,7 +18,7 @@ type (
 	SignUpInput struct {
 		Email    string
 		Password string
-		Role     int
+		Role     string
 	}
 
 	SignUpUseCase struct {
@@ -88,8 +88,9 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		UserID:     identityUser.ID,
 		Email:      identityUser.Email,
 		ProfileID:  profile.ID,
+		Scope:      domain.GetPermissions(identityUser.GetRole()),
 		ProfileIds: make([]string, 0),
-		Role:       role,
+		Role:       string(identityUser.GetRole()),
 	})
 
 	if err != nil {
@@ -118,9 +119,6 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 
 	return mappers.ToAuthResponse(
 		identityUser,
-		profile,
-		make([]domain.Profile, 0),
-		role,
 		accessToken,
 		refreshToken,
 	), nil

@@ -60,12 +60,6 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 		return nil, fails.USER_AUTH_FAILED
 	}
 
-	role, err := domain.GetRole(identityUser.Role)
-
-	if err != nil {
-		return nil, fails.USER_AUTH_FAILED
-	}
-
 	mainProfile, subProfiles := domain.FilterProfiles(attachedProfiles)
 
 	accessToken, refreshToken, err := as.tokenService.CreateAuthenticationTokens(services.TokenPayload{
@@ -73,7 +67,8 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 		Email:      identityUser.Email,
 		ProfileID:  mainProfile.ID,
 		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
-		Role:       role,
+		Scope:      domain.GetPermissions(identityUser.GetRole()),
+		Role:       string(identityUser.GetRole()),
 	})
 
 	if err != nil {
@@ -82,9 +77,6 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 
 	return mappers.ToAuthResponse(
 		identityUser,
-		mainProfile,
-		subProfiles,
-		role,
 		accessToken,
 		refreshToken,
 	), nil

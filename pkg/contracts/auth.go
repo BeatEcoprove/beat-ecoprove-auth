@@ -52,7 +52,7 @@ type (
 	SignUpRequest struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=8"`
-		Role     int    `json:"role" validate:"numeric"`
+		Role     string `json:"role"`
 	}
 
 	AccountResponse struct {
@@ -64,11 +64,15 @@ type (
 	}
 
 	AuthResponse struct {
-		Details                AccountResponse `json:"details"`
-		AccessToken            string          `json:"access_token"`
-		AccessTokenExpiration  int             `json:"access_token_exp"`
-		RefreshToken           string          `json:"refresh_token"`
-		RefreshTokenExpiration int             `json:"refresh_token_exp"`
+		TokenType    string   `json:"token_type"` // "Bearer"
+		AccessToken  string   `json:"access_token"`
+		ExpiresIn    int      `json:"expires_in"`
+		RefreshToken string   `json:"refresh_token"`
+		Scope        []string `json:"scope,omitempty"`
+		// Custom extensions
+		// 	User      *AccountResponse `json:"user,omitempty"`
+		// 	IssuedAt  int64            `json:"issued_at"`  // Unix timestamp
+		// 	ExpiresAt int64            `json:"expires_at"` // Unix timestamp
 	}
 
 	GenericResponse struct {

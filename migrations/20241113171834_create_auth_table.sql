@@ -6,7 +6,7 @@ create table auths(
     password text not null,
     salt text not null,
     is_active boolean default false,
-    role int default 0, -- 0 USER / 1 ORGANIZATION / 2 SPONSOR / 3 ADMIN
+    role varchar default 'anonymous',
     created_at timestamp default now(),
     updated_at timestamp default now(),
     deleted_at timestamp default null,

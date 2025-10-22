@@ -23,6 +23,7 @@ type (
 		UserID     string
 		ProfileID  string
 		ProfileIds []string
+		Scope      []string
 		Role       string
 		Duration   time.Time
 		Type       TokenType
@@ -32,8 +33,9 @@ type (
 		jwt.RegisteredClaims
 		Email      string   `json:"email,omitempty"`
 		Role       string   `json:"role,omitempty"`
-		ProfileID  string   `json:"profileId,omitempty"`
-		ProfileIds []string `json:"profileIds"`
+		ProfileID  string   `json:"profile_id,omitempty"`
+		ProfileIds []string `json:"profile_ids,omitempty"`
+		Scope      []string `json:"scope,omitempty"`
 	}
 )
 
@@ -79,6 +81,7 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 		Role:       payload.Role,
 		ProfileID:  payload.ProfileID,
 		ProfileIds: payload.ProfileIds,
+		Scope:      payload.Scope,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    env.JWT_ISSUER,
 			Audience:  jwt.ClaimStrings{env.JWT_AUDIENCE},

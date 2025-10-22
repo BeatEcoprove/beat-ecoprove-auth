@@ -42,12 +42,6 @@ func (rtu *RefreshTokensUseCase) Handle(request RefreshTokensInput) (*contracts.
 		return nil, fails.USER_NOT_FOUND
 	}
 
-	role, err := domain.GetRole(identityUser.Role)
-
-	if err != nil {
-		return nil, fails.ROLE_NOT_FOUND
-	}
-
 	mainProfile, subProfiles, err := rtu.getProfiles(request.AuthId, request.ProfileId)
 
 	if err != nil {
@@ -59,7 +53,8 @@ func (rtu *RefreshTokensUseCase) Handle(request RefreshTokensInput) (*contracts.
 		Email:      identityUser.Email,
 		ProfileID:  mainProfile.ID,
 		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
-		Role:       role,
+		Scope:      domain.GetPermissions(identityUser.GetRole()),
+		Role:       string(identityUser.GetRole()),
 	})
 
 	if err != nil {
@@ -68,9 +63,6 @@ func (rtu *RefreshTokensUseCase) Handle(request RefreshTokensInput) (*contracts.
 
 	return mappers.ToAuthResponse(
 		identityUser,
-		mainProfile,
-		subProfiles,
-		role,
 		accessToken,
 		refreshToken,
 	), nil

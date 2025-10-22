@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/BeatEcoprove/identityService/internal/domain/events"
-	"github.com/BeatEcoprove/identityService/pkg/adapters"
 	interfaces "github.com/BeatEcoprove/identityService/pkg/adapters"
 	"github.com/BeatEcoprove/identityService/pkg/shared"
 	"github.com/google/uuid"
@@ -13,7 +12,7 @@ import (
 
 type (
 	EmailTemplate struct {
-		Id        string
+		ID        string
 		Subject   string
 		Paramters map[string]string
 	}
@@ -40,7 +39,7 @@ var (
 
 func NewConfirmEmailTemplate() *EmailTemplate {
 	return &EmailTemplate{
-		Id:        "confirm-account",
+		ID:        "confirm-account",
 		Subject:   "Confirm Account",
 		Paramters: make(map[string]string),
 	}
@@ -48,7 +47,7 @@ func NewConfirmEmailTemplate() *EmailTemplate {
 
 func NewForgotEmailTemplate(code string) *EmailTemplate {
 	return &EmailTemplate{
-		Id:      "forgot-password",
+		ID:      "forgot-password",
 		Subject: "Forgot Password",
 		Paramters: map[string]string{
 			"code": code,
@@ -79,7 +78,7 @@ func (es *EmailService) Send(input EmailInput) error {
 		return err
 	}
 
-	if err := es.broker.Publish(payload, adapters.EmailEventTopic); err != nil {
+	if err := es.broker.Publish(payload, interfaces.EmailEventTopic); err != nil {
 		return err
 	}
 
@@ -97,7 +96,7 @@ func convertToPush(input EmailInput) (*events.EmailQueueEvent, error) {
 	return &events.EmailQueueEvent{
 		Id:        uuid.NewString(),
 		Recipient: input.To,
-		Template:  input.Template.Id,
+		Template:  input.Template.ID,
 		Variables: input.Template.Paramters,
 		SendAt:    time.Now(),
 	}, err

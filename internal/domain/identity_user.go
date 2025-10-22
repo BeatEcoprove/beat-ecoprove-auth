@@ -6,12 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthRole int
+type AuthRole string
 
 const (
-	AuthClient AuthRole = iota
-	AuthOrganization
-	AuthAdmin
+	AuthAnonymous    AuthRole = "anonymous"
+	AuthClient       AuthRole = "client"
+	AuthOrganization AuthRole = "organization"
+	AuthAdmin        AuthRole = "admin"
 )
 
 type IdentityUser struct {
@@ -20,15 +21,24 @@ type IdentityUser struct {
 	Password string
 	Salt     string `gorm:"column:salt"`
 	IsActive bool
-	Role     AuthRole
+	role     AuthRole
 }
 
 func NewIdentityUser(email, password string, role AuthRole) *IdentityUser {
 	return &IdentityUser{
 		Email:    email,
 		Password: password,
-		Role:     role,
+		role:     role,
+		IsActive: false,
 	}
+}
+
+func (b *IdentityUser) GetRole() AuthRole {
+	if b.IsActive {
+		return b.role
+	}
+
+	return AuthAnonymous
 }
 
 func (b *IdentityUser) TableName() string {

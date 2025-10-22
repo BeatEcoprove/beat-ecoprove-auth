@@ -18,23 +18,14 @@ func MapProfileIdsToString(profiles []domain.Profile) []string {
 
 func ToAuthResponse(
 	identityUser *domain.IdentityUser,
-	mainProfile *domain.Profile,
-	profiles []domain.Profile,
-	role string,
 	accessToken,
 	refreshToken *services.JwtToken,
 ) *contracts.AuthResponse {
 	return &contracts.AuthResponse{
-		Details: contracts.AccountResponse{
-			UserID:     identityUser.ID,
-			Email:      identityUser.Email,
-			ProfileID:  mainProfile.ID,
-			ProfileIds: MapProfileIdsToString(profiles),
-			Role:       role,
-		},
-		AccessToken:            accessToken.Token,
-		AccessTokenExpiration:  accessToken.ExpireAt,
-		RefreshToken:           refreshToken.Token,
-		RefreshTokenExpiration: refreshToken.ExpireAt,
+		TokenType:    "Bearer",
+		AccessToken:  accessToken.Token,
+		ExpiresIn:    accessToken.ExpireAt,
+		RefreshToken: refreshToken.Token,
+		Scope:        domain.GetPermissions(identityUser.GetRole()),
 	}
 }

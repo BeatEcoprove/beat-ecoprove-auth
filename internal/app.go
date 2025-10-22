@@ -3,6 +3,7 @@ package internal
 import (
 	"github.com/BeatEcoprove/identityService/config"
 	"github.com/BeatEcoprove/identityService/internal/adapters"
+	"github.com/BeatEcoprove/identityService/internal/domain"
 	"github.com/BeatEcoprove/identityService/internal/domain/events"
 	"github.com/BeatEcoprove/identityService/internal/domain/handlers"
 	"github.com/BeatEcoprove/identityService/internal/middlewares"
@@ -92,6 +93,8 @@ func NewApp() (*App, error) {
 		GroupCreated:   handlers.NewGroupCreatedHandler(repos.MemberChat, repos.Auth),
 		InviteAccepted: handlers.NewInviteAcceptedHandler(repos.MemberChat, repos.Auth),
 	}
+
+	domain.InitPermissions()
 
 	httpServer := adapters.NewHttpServer(APIVersion)
 
