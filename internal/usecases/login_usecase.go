@@ -67,7 +67,7 @@ func (as *LoginUseCase) Handle(input LoginInput) (*contracts.AuthResponse, error
 		Email:      identityUser.Email,
 		ProfileID:  mainProfile.ID,
 		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
-		Scope:      domain.GetPermissions(identityUser.GetRole()),
+		Scope:      domain.GetPermissions(*identityUser),
 		Role:       string(identityUser.GetRole()),
 	})
 

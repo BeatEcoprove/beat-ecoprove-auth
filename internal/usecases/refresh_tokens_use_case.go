@@ -53,7 +53,7 @@ func (rtu *RefreshTokensUseCase) Handle(request RefreshTokensInput) (*contracts.
 		Email:      identityUser.Email,
 		ProfileID:  mainProfile.ID,
 		ProfileIds: mappers.MapProfileIdsToString(subProfiles),
-		Scope:      domain.GetPermissions(identityUser.GetRole()),
+		Scope:      domain.GetPermissions(*identityUser),
 		Role:       string(identityUser.GetRole()),
 	})
 

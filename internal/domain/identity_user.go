@@ -21,24 +21,20 @@ type IdentityUser struct {
 	Password string
 	Salt     string `gorm:"column:salt"`
 	IsActive bool
-	role     AuthRole
+	Role     AuthRole
 }
 
 func NewIdentityUser(email, password string, role AuthRole) *IdentityUser {
 	return &IdentityUser{
 		Email:    email,
 		Password: password,
-		role:     role,
+		Role:     role,
 		IsActive: false,
 	}
 }
 
 func (b *IdentityUser) GetRole() AuthRole {
-	if b.IsActive {
-		return b.role
-	}
-
-	return AuthAnonymous
+	return b.Role
 }
 
 func (b *IdentityUser) TableName() string {

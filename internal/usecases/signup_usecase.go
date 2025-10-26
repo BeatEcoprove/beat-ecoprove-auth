@@ -88,7 +88,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		UserID:     identityUser.ID,
 		Email:      identityUser.Email,
 		ProfileID:  profile.ID,
-		Scope:      domain.GetPermissions(identityUser.GetRole()),
+		Scope:      domain.GetPermissions(*identityUser),
 		ProfileIds: make([]string, 0),
 		Role:       string(identityUser.GetRole()),
 	})

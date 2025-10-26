@@ -26,6 +26,6 @@ func ToAuthResponse(
 		AccessToken:  accessToken.Token,
 		ExpiresIn:    accessToken.ExpireAt,
 		RefreshToken: refreshToken.Token,
-		Scope:        domain.GetPermissions(identityUser.GetRole()),
+		Scope:        domain.GetPermissions(*identityUser),
 	}
 }
