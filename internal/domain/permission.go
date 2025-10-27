@@ -20,6 +20,12 @@ const (
 	InviteCreate  = "invite:create"
 	InviteAccept  = "invite:accept"
 	InviteDecline = "invite:decline"
+
+	// messages permissions
+	MessageView = "message:view"
+
+	// notifications permissions
+	NotificationView = "notification:view"
 )
 
 var (
@@ -63,5 +69,7 @@ func InitPermissions() {
 		InviteAccept,
 		InviteCreate,
 		InviteDecline,
+		MessageView,
+		NotificationView,
 	}
 }
