@@ -7,43 +7,43 @@ import (
 var (
 	PASSWORD_PROVIDE = shared.NewConflitError(
 		"password-pv",
-		"Password Validation",
-		"Provide password field",
+		"Auth.Validation.ProvidePassword.Title",
+		"Auth.Validation.ProvidePassword.Description",
 	)
 
 	PASSWORD_BTW_6_16 = shared.NewConflitError(
 		"password-btw-6-16",
-		"Password Validation",
-		"Password must be between 6 and 16 characters",
+		"Auth.Validation.PasswordBetween6And16.Title",
+		"Auth.Validation.PasswordBetween6And16.Description",
 	)
 
 	PASSWORD_MUST_CONTAIN_ONE_NUMBER = shared.NewConflitError(
 		"password-mst-number",
-		"Password Validation",
-		"Password must contain at least one number",
+		"Auth.Validation.PasswordMustContainOneNumber.Title",
+		"Auth.Validation.PasswordMustContainOneNumber.Description",
 	)
 
 	PASSWORD_MUST_CONTAIN_ONE_CAPITAL = shared.NewConflitError(
 		"password-mst-capital",
-		"Password Validation",
-		"Password must contain at least one capital letter",
+		"Auth.Validation.PasswordMustContainOneCapital.Title",
+		"Auth.Validation.PasswordMustContainOneCapital.Description",
 	)
 
 	PASSWORD_MUST_CONTAIN_NON_CAPITAL = shared.NewConflitError(
 		"password-mst-n-capital",
-		"Password Validation",
-		"Password must contain at least one non-capital letter",
+		"Auth.Validation.PasswordMustContainNonCapital.Title",
+		"Auth.Validation.PasswordMustContainNonCapital.Description",
 	)
 
 	BAD_UUID = shared.NewConflitError(
 		"bad-uuid",
-		"Invalid uuid",
-		"Please provide a valid uuid",
+		"Auth.Validation.InvalidUUID.Title",
+		"Auth.Validation.InvalidUUID.Description",
 	)
 
 	BAD_EMAIL = shared.NewConflitError(
 		"bad-email",
-		"Invalid email",
-		"Please provide a valid email",
+		"Auth.Validation.InvalidEmail.Title",
+		"Auth.Validation.InvalidEmail.Description",
 	)
 )
