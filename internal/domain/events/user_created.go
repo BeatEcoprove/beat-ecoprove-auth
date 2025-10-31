@@ -1,9 +1,10 @@
 package events
 
 type UserCreatedEvent struct {
-	PublicId string `json:"public_id"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
+	AuthId    string `json:"auth_id"`
+	ProfileId string `json:"profile_id"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
 }
 
 func (e *UserCreatedEvent) GetEventType() string {

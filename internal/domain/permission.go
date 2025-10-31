@@ -5,6 +5,9 @@ type Permission string
 const (
 	// profile permissions
 	ProfileCreate Permission = "profile:create"
+	ProfileView   Permission = "profile:view"
+	ProfileDelete Permission = "profile:delete"
+	ProfileUpdate Permission = "profile:update"
 
 	// group permissions
 	GroupCreate = "group:create"
@@ -60,6 +63,9 @@ func InitPermissions() {
 
 	roles[AuthClient] = []Permission{
 		ProfileCreate,
+		ProfileView,
+		ProfileDelete,
+		ProfileUpdate,
 		GroupCreate,
 		GroupView,
 		GroupDelete,

@@ -98,9 +98,10 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 	}
 
 	if err := as.broker.Publish(&events.UserCreatedEvent{
-		PublicId: identityUser.ID,
-		Email:    identityUser.Email,
-		Role:     role,
+		AuthId:    identityUser.ID,
+		ProfileId: profile.ID,
+		Email:     identityUser.Email,
+		Role:      role,
 	}, adapters.AuthEventTopic); err != nil {
 		log.Printf("failed to send kafka event %s", err.Error())
 		return nil, fails.InternalServerError()
