@@ -49,6 +49,7 @@
             go_1_25
             goose
             go-swag
+            just
           ];
 
           shellHook = ''
