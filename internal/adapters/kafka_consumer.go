@@ -29,6 +29,7 @@ const groupId = "auth_consumer"
 var kafkaConsumer *KafkaConsumer
 var eventHandlers map[string]HandlerBind = make(map[string]HandlerBind)
 var consumeTopics = []string{
+	string(interfaces.AuthEventTopic),
 	string(interfaces.MessagingEventTopic),
 }
 
@@ -88,7 +89,7 @@ func (kc *KafkaConsumer) Consume() {
 func getEventType(payload any) (string, error) {
 	t := reflect.TypeOf(payload)
 
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 

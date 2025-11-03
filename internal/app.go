@@ -92,6 +92,7 @@ func NewApp() (*App, error) {
 	eventHandlers := &handlers.EventHandlers{
 		GroupCreated:   handlers.NewGroupCreatedHandler(repos.MemberChat, repos.Auth),
 		InviteAccepted: handlers.NewInviteAcceptedHandler(repos.MemberChat, repos.Auth),
+		ProfileCreated: handlers.NewProfileCreatedHandler(repos.Auth, repos.Profile),
 	}
 
 	domain.InitPermissions()
@@ -126,6 +127,7 @@ func (app *App) ApplyHTTPServer() {
 func (app *App) ApplyConsumer() {
 	app.Consumer.Register(app.EventHandlers.GroupCreated, &events.GroupCreatedEvent{})
 	app.Consumer.Register(app.EventHandlers.InviteAccepted, &events.InviteAcceptedEvent{})
+	app.Consumer.Register(app.EventHandlers.ProfileCreated, &events.ProfileCreatedEvent{})
 }
 
 func (app *App) Serve() {
