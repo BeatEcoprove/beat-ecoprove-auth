@@ -4,9 +4,8 @@ import (
 	"log"
 
 	"github.com/BeatEcoprove/identityService/internal/domain"
-	"github.com/BeatEcoprove/identityService/internal/domain/events"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
-	"github.com/BeatEcoprove/identityService/pkg/adapters"
+	"github.com/BeatEcoprove/identityService/internal/usecases/helpers"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
 	fails "github.com/BeatEcoprove/identityService/pkg/errors"
 	"github.com/BeatEcoprove/identityService/pkg/mappers"
@@ -26,8 +25,8 @@ type (
 		profileRepo  repositories.IProfileRepository
 		tokenService services.ITokenService
 
-		emailService services.IEmailService
-		broker       adapters.Broker
+		emailService        services.IEmailService
+		createProfileHelper helpers.IProfileCreateService
 	}
 )
 
@@ -36,14 +35,14 @@ func NewSignUpUseCase(
 	profileRepo repositories.IProfileRepository,
 	tokenService services.ITokenService,
 	emailService services.IEmailService,
-	broker adapters.Broker,
+	createProfileHelper helpers.IProfileCreateService,
 ) *SignUpUseCase {
 	return &SignUpUseCase{
-		authRepo:     authRepo,
-		profileRepo:  profileRepo,
-		tokenService: tokenService,
-		emailService: emailService,
-		broker:       broker,
+		authRepo:            authRepo,
+		profileRepo:         profileRepo,
+		tokenService:        tokenService,
+		emailService:        emailService,
+		createProfileHelper: createProfileHelper,
 	}
 }
 
@@ -65,7 +64,7 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 	identityUser := domain.NewIdentityUser(
 		input.Email,
 		input.Password,
-		domain.AuthRole(input.Role),
+		domain.AuthRole(role),
 	)
 
 	signUpTransaction, err := as.authRepo.BeginTransaction()
@@ -78,9 +77,13 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 		return nil, fails.InternalServerError()
 	}
 
-	profile := domain.NewProfile(identityUser.ID, domain.Main)
+	profile, err := as.createProfileHelper.CreateProfile(signUpTransaction, helpers.CreateProfileInput{
+		AuthID: identityUser.ID,
+		Email:  identityUser.Email,
+		Role:   identityUser.GetRole(),
+	})
 
-	if err := signUpTransaction.Create(profile); err != nil {
+	if err != nil {
 		return nil, fails.InternalServerError()
 	}
 
@@ -94,16 +97,6 @@ func (as *SignUpUseCase) Handle(input SignUpInput) (*contracts.AuthResponse, err
 	})
 
 	if err != nil {
-		return nil, fails.InternalServerError()
-	}
-
-	if err := as.broker.Publish(&events.UserCreatedEvent{
-		AuthID:    identityUser.ID,
-		ProfileID: profile.ID,
-		Email:     identityUser.Email,
-		Role:      role,
-	}, adapters.AuthEventTopic); err != nil {
-		log.Printf("failed to send kafka event %s", err.Error())
 		return nil, fails.InternalServerError()
 	}
 

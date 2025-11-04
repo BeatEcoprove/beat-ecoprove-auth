@@ -15,10 +15,6 @@ type (
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
-	AttachProfileRequest struct {
-		ProfileGrantType int `json:"grant_type"`
-	}
-
 	ProfileResponse struct {
 		ProfileID string `json:"profile_id"`
 	}
@@ -66,7 +62,7 @@ type (
 	AuthResponse struct {
 		TokenType    string   `json:"token_type"` // "Bearer"
 		AccessToken  string   `json:"access_token"`
-		ExpiresIn    int      `json:"expires_in"`
+		ExpiresIn    int64    `json:"expires_in"`
 		RefreshToken string   `json:"refresh_token"`
 		Scope        []string `json:"scope,omitempty"`
 		// Custom extensions

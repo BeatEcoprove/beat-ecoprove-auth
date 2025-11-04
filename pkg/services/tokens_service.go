@@ -41,7 +41,7 @@ func NewRefreshTokenKey(userId string) interfaces.RedisKey {
 }
 
 func generateAuthenticationTokens(payload TokenPayload, accessTokenExp, refreshTokenExp time.Duration) (*JwtToken, *JwtToken, error) {
-	payload.Duration = time.Now().Add(accessTokenExp)
+	payload.Duration = accessTokenExp
 	payload.Type = Access
 
 	accessToken, err := CreateJwtToken(payload)
@@ -50,7 +50,7 @@ func generateAuthenticationTokens(payload TokenPayload, accessTokenExp, refreshT
 		return nil, nil, err
 	}
 
-	payload.Duration = time.Now().Add(refreshTokenExp)
+	payload.Duration = refreshTokenExp
 	payload.Type = Refresh
 
 	refreshToken, err := CreateJwtToken(payload)

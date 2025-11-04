@@ -3,8 +3,11 @@ package usecases
 import (
 	"github.com/BeatEcoprove/identityService/internal/domain"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
+	"github.com/BeatEcoprove/identityService/internal/usecases/helpers"
 	"github.com/BeatEcoprove/identityService/pkg/contracts"
 	fails "github.com/BeatEcoprove/identityService/pkg/errors"
+	"github.com/BeatEcoprove/identityService/pkg/mappers"
+	"github.com/BeatEcoprove/identityService/pkg/services"
 )
 
 type (
@@ -15,22 +18,28 @@ type (
 	}
 
 	AttachProfileUseCase struct {
-		authRepo    repositories.IAuthRepository
-		profileRepo repositories.IProfileRepository
+		authRepo             repositories.IAuthRepository
+		profileRepo          repositories.IProfileRepository
+		tokenService         services.ITokenService
+		createProfileService helpers.IProfileCreateService
 	}
 )
 
 func NewAttachProfileUseCase(
 	authRepo repositories.IAuthRepository,
 	profileRepo repositories.IProfileRepository,
+	tokenService services.ITokenService,
+	createProfileService helpers.IProfileCreateService,
 ) *AttachProfileUseCase {
 	return &AttachProfileUseCase{
-		authRepo:    authRepo,
-		profileRepo: profileRepo,
+		authRepo:             authRepo,
+		profileRepo:          profileRepo,
+		tokenService:         tokenService,
+		createProfileService: createProfileService,
 	}
 }
 
-func (apu *AttachProfileUseCase) Handle(request AttachProfileInput) (*contracts.ProfileResponse, error) {
+func (apu *AttachProfileUseCase) Handle(request AttachProfileInput) (*contracts.AuthResponse, error) {
 	grantType := domain.GrantType(request.ProfileGrantType)
 	_, err := domain.GetGrantType(grantType)
 
@@ -50,26 +59,28 @@ func (apu *AttachProfileUseCase) Handle(request AttachProfileInput) (*contracts.
 		return nil, fails.InternalServerError()
 	}
 
-	if grantType == domain.Main {
-		mainProfile, err := apu.profileRepo.GetMainProfileByAuthId(identityUser.ID)
+	profile, err := apu.createProfileService.CreateProfile(createProfileTransaction, helpers.CreateProfileInput{
+		AuthID:    identityUser.ID,
+		Email:     identityUser.Email,
+		Role:      identityUser.GetRole(),
+		GrantType: grantType,
+	})
 
-		if err != nil {
-			return nil, fails.USER_NOT_FOUND
-		}
-
-		mainProfile.Role = domain.Sub
-
-		if err := createProfileTransaction.Update(mainProfile); err != nil {
-			return nil, fails.InternalServerError()
-		}
+	if err != nil {
+		return nil, fails.InternalServerError()
 	}
 
-	profile := domain.NewProfile(
-		identityUser.ID,
-		grantType,
-	)
+	identityUser.IsActive = false
+	accessToken, refreshToken, err := apu.tokenService.CreateAuthenticationTokens(services.TokenPayload{
+		UserID:     identityUser.ID,
+		Email:      identityUser.Email,
+		ProfileID:  profile.ID,
+		Scope:      domain.GetPermissions(*identityUser),
+		ProfileIds: make([]string, 0),
+		Role:       string(identityUser.GetRole()),
+	})
 
-	if err := createProfileTransaction.Create(profile); err != nil {
+	if err != nil {
 		return nil, fails.InternalServerError()
 	}
 
@@ -77,7 +88,9 @@ func (apu *AttachProfileUseCase) Handle(request AttachProfileInput) (*contracts.
 		return nil, fails.InternalServerError()
 	}
 
-	return &contracts.ProfileResponse{
-		ProfileID: profile.ID,
-	}, nil
+	return mappers.ToAuthResponse(
+		identityUser,
+		accessToken,
+		refreshToken,
+	), nil
 }

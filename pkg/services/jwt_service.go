@@ -15,7 +15,7 @@ type (
 
 	JwtToken struct {
 		Token    string
-		ExpireAt int
+		ExpireAt int64
 	}
 
 	TokenPayload struct {
@@ -25,7 +25,7 @@ type (
 		ProfileIds []string
 		Scope      []string
 		Role       string
-		Duration   time.Time
+		Duration   time.Duration
 		Type       TokenType
 	}
 
@@ -75,6 +75,8 @@ func LoadKeys(publicKey, privateKey []byte) error {
 
 func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 	env := config.GetConfig()
+	currentTime := time.Now()
+	expiresAt := currentTime.Add(payload.Duration)
 
 	claims := AuthClaims{
 		Email:      payload.Email,
@@ -85,8 +87,8 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    env.JWT_ISSUER,
 			Audience:  jwt.ClaimStrings{env.JWT_AUDIENCE},
-			IssuedAt:  &jwt.NumericDate{Time: time.Now()},
-			ExpiresAt: &jwt.NumericDate{Time: payload.Duration},
+			IssuedAt:  &jwt.NumericDate{Time: currentTime},
+			ExpiresAt: &jwt.NumericDate{Time: expiresAt},
 			Subject:   payload.UserID,
 			ID:        uuid.New().String(),
 		},
@@ -108,7 +110,7 @@ func CreateJwtToken(payload TokenPayload) (*JwtToken, error) {
 
 	return &JwtToken{
 		Token:    jwtToken,
-		ExpireAt: int(payload.Duration.UTC().Unix()),
+		ExpireAt: int64(expiresAt.Unix()),
 	}, nil
 }
 

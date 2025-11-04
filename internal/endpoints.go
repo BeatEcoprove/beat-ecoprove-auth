@@ -69,7 +69,7 @@ func (c *AuthController) Route(router fiber.Router) {
 	authRoutes.Post("sign-up", c.SignUp)
 
 	profileRoutes := authRoutes.Group(ProfileRoutes)
-	profileRoutes.Post("", c.authMiddleware.AccessTokenHandler, c.AttachProfile)
+	profileRoutes.Post("reserve", c.authMiddleware.AccessTokenHandler, c.AttachProfile)
 	profileRoutes.Get("me", c.authMiddleware.AccessTokenHandler, c.Me)
 
 	availabilityRoutes := authRoutes.Group(AvailabilityRoutes)
@@ -172,21 +172,15 @@ func (c *AuthController) handleRefreshTokens(ctx *fiber.Ctx) error {
 //
 //	@Router		/profiles [post]
 func (c *AuthController) AttachProfile(ctx *fiber.Ctx) error {
-	var attachProfileRequest contracts.AttachProfileRequest
-
 	authID, err := middlewares.GetUserID(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	if err = shared.ParseBodyAndValidate(ctx, &attachProfileRequest); err != nil {
-		return err
-	}
-
 	response, err := c.attachProfileUseCase.Handle(usecases.AttachProfileInput{
 		AuthId:           authID,
-		ProfileGrantType: attachProfileRequest.ProfileGrantType,
+		ProfileGrantType: 1,
 	})
 
 	if err != nil {

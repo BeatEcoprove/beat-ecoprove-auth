@@ -2,25 +2,28 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/BeatEcoprove/identityService/internal/domain"
 	"github.com/BeatEcoprove/identityService/internal/domain/events"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
+	"github.com/BeatEcoprove/identityService/internal/usecases/helpers"
 )
 
 type ProfileCreatedHandler struct {
-	authRepo    repositories.IAuthRepository
-	profileRepo repositories.IProfileRepository
+	authRepo             repositories.IAuthRepository
+	profileRepo          repositories.IProfileRepository
+	profileCreateService helpers.IProfileCreateService
 }
 
 func NewProfileCreatedHandler(
 	authRepo repositories.IAuthRepository,
 	profileRepo repositories.IProfileRepository,
+	profileCreateService helpers.IProfileCreateService,
 ) *ProfileCreatedHandler {
 	return &ProfileCreatedHandler{
-		authRepo:    authRepo,
-		profileRepo: profileRepo,
+		authRepo:             authRepo,
+		profileRepo:          profileRepo,
+		profileCreateService: profileCreateService,
 	}
 }
 
@@ -35,8 +38,6 @@ func (p *ProfileCreatedHandler) canCreateProfile(user domain.IdentityUser) bool 
 }
 
 func (p *ProfileCreatedHandler) Call(payload any) error {
-	log.Printf("Hello World, %+v", payload)
-
 	event, ok := payload.(*events.ProfileCreatedEvent)
 
 	if !ok {
@@ -55,6 +56,10 @@ func (p *ProfileCreatedHandler) Call(payload any) error {
 
 	if !p.profileRepo.IsProfileFromUserId(event.AuthId, event.ProfileId) {
 		return fmt.Errorf("access revoked to profile")
+	}
+
+	if err := p.profileCreateService.MarkProfile(event.ProfileId); err != nil {
+		return fmt.Errorf("failed to activate profile")
 	}
 
 	foundAuth.IsActive = true

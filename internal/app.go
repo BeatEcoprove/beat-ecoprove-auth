@@ -9,6 +9,7 @@ import (
 	"github.com/BeatEcoprove/identityService/internal/middlewares"
 	"github.com/BeatEcoprove/identityService/internal/repositories"
 	"github.com/BeatEcoprove/identityService/internal/usecases"
+	"github.com/BeatEcoprove/identityService/internal/usecases/helpers"
 	interfaces "github.com/BeatEcoprove/identityService/pkg/adapters"
 	"github.com/BeatEcoprove/identityService/pkg/services"
 	"github.com/BeatEcoprove/identityService/pkg/shared"
@@ -59,15 +60,17 @@ func NewApp() (*App, error) {
 		Email: services.NewEmailService(kafkaPub),
 	}
 
+	createProfileService := helpers.NewProfileCreateService(repos.Profile, kafkaPub, redis)
 	usecases := &usecases.UseCases{
-		Sign:             usecases.NewSignUpUseCase(repos.Auth, repos.Profile, services.Token, services.Email, kafkaPub),
-		Login:            usecases.NewLoginUseCase(repos.Auth, repos.Profile, services.Token),
-		AttachProfile:    usecases.NewAttachProfileUseCase(repos.Auth, repos.Profile),
-		RefreshTokens:    usecases.NewRefreshTokensUseCase(repos.Auth, repos.Profile, services.Token),
-		ForgotPassword:   usecases.NewForgotPasswordUseCase(repos.Auth, services.PG, services.Email),
-		ResetPassword:    usecases.NewResetPasswdUseCase(repos.Auth, services.PG, services.Email),
-		CheckFields:      usecases.NewCheckFieldUseCase(repos.Auth),
-		FetchPermissions: usecases.NewFetchGroupUserPermissionsUseCase(repos.MemberChat),
+		ProfileCreateService: createProfileService,
+		Sign:                 usecases.NewSignUpUseCase(repos.Auth, repos.Profile, services.Token, services.Email, createProfileService),
+		Login:                usecases.NewLoginUseCase(repos.Auth, repos.Profile, services.Token),
+		AttachProfile:        usecases.NewAttachProfileUseCase(repos.Auth, repos.Profile, services.Token, createProfileService),
+		RefreshTokens:        usecases.NewRefreshTokensUseCase(repos.Auth, repos.Profile, services.Token),
+		ForgotPassword:       usecases.NewForgotPasswordUseCase(repos.Auth, services.PG, services.Email),
+		ResetPassword:        usecases.NewResetPasswdUseCase(repos.Auth, services.PG, services.Email),
+		CheckFields:          usecases.NewCheckFieldUseCase(repos.Auth),
+		FetchPermissions:     usecases.NewFetchGroupUserPermissionsUseCase(repos.MemberChat),
 	}
 
 	middlewares := &middlewares.Middlewares{
@@ -92,7 +95,7 @@ func NewApp() (*App, error) {
 	eventHandlers := &handlers.EventHandlers{
 		GroupCreated:   handlers.NewGroupCreatedHandler(repos.MemberChat, repos.Auth),
 		InviteAccepted: handlers.NewInviteAcceptedHandler(repos.MemberChat, repos.Auth),
-		ProfileCreated: handlers.NewProfileCreatedHandler(repos.Auth, repos.Profile),
+		ProfileCreated: handlers.NewProfileCreatedHandler(repos.Auth, repos.Profile, createProfileService),
 	}
 
 	domain.InitPermissions()

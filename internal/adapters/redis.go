@@ -17,6 +17,14 @@ type RedisConnection struct {
 	ctx    context.Context
 }
 
+func EnableOpt(ctx context.Context, paramter, value string) error {
+	return redisConnection.client.ConfigSet(ctx, paramter, value).Err()
+}
+
+func Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+	return redisConnection.client.PSubscribe(ctx, channels...)
+}
+
 func GetRedis() *RedisConnection {
 	if redisConnection == nil {
 		redisConnection = newRedisConnection()

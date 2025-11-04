@@ -1,13 +1,21 @@
 package adapters
 
 import (
+	"context"
 	"strings"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 const Delimiter = ":"
 
 type (
+	RedisConsumer interface {
+		EnableOpt(ctx context.Context, paramter, value string) error
+		Subscribe(ctx context.Context, channels ...string) *redis.PubSub
+	}
+
 	Redis interface {
 		GetValue(key RedisKey) (string, error)
 		SetValue(key RedisKey, value interface{}, expiration time.Duration) error
