@@ -7,30 +7,16 @@ goose_bin := "goose"
 # Migration directory
 migration_dir := "migrations"
 
-# Default recipe (runs when you type 'just')
-default: help
+default:
+    @just --list
 
-# Show available recipes
-help:
-	@echo "Justfile for managing Project tools"
-	@echo
-	@echo "Tools:"
-	@echo "  setup                         - Download and install all necessary tools"
-	@echo "  install-goose                 - Download and install goose"
-	@echo "  install-swag                  - Download and install swag"
-	@echo
-	@echo "Actions:"
-	@echo "  test                          - Run tests"
-	@echo "  coverage                      - Generate Coverage Report"
-	@echo "  swagger                       - Generate Swagger configuration files"
-	@echo
-	@echo "Database:"
-	@echo "  rollback                      - Rollback the last migration"
-	@echo "  rebuild                       - Rebuild migrations"
-	@echo "  reset                         - Rollback all the migrations"
-	@echo "  status                        - Show the current migration status"
-	@echo "  migrate                       - Apply all pending migrations"
-	@echo "  create-migration              - Create a new migration with a user-provided name"
+# Run the application
+serve:
+    go run cmd/identity-service/main.go
+
+# Run the application with nix
+serve-nix:
+    nix run .#default
 
 # Download and install all necessary tools
 setup: install-goose install-swag

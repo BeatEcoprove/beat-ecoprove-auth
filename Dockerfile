@@ -14,7 +14,7 @@ COPY . /src
 RUN go generate ./...
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
-  CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server cmd/identityService/main.go
+  CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server cmd/identity-service/main.go
 
 FROM alpine:latest AS final
 
