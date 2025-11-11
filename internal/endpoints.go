@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	AuthRoutes         = "auth"
+	AuthRoutes         = "account"
 	ProfileRoutes      = "profiles"
 	AvailabilityRoutes = "availability"
 	GroupRoutes        = "groups"
