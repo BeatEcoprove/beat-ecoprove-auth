@@ -148,5 +148,6 @@ func InitPermissions() {
 		InviteDecline,
 		MessageView,
 		NotificationView,
+		ProviderView,
 	}
 }
