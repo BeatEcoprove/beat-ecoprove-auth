@@ -149,5 +149,6 @@ func InitPermissions() {
 		MessageView,
 		NotificationView,
 		ProviderView,
+		ServiceView,
 	}
 }
