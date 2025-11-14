@@ -150,5 +150,6 @@ func InitPermissions() {
 		NotificationView,
 		ProviderView,
 		ServiceView,
+		ServiceUpdate,
 	}
 }
