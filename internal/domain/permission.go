@@ -64,7 +64,8 @@ const (
 	ColorView Permission = "color:view"
 
 	// Brand
-	BrandView Permission = "brand:view"
+	BrandView   Permission = "brand:view"
+	BrandCreate Permission = "brand:create"
 
 	// group permissions
 	GroupCreate Permission = "group:create"
@@ -133,6 +134,7 @@ func InitPermissions() {
 		OutfitView,
 		FeedbackCreate,
 		BrandView,
+		BrandCreate,
 		ColorView,
 		CurrencyConvert,
 		MaintenanceCreate,
